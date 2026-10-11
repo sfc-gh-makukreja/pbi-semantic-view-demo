@@ -100,35 +100,31 @@ Autopilot reads the parameter values from the file you give it. If they are blan
 
 Open `TastyBytes_bound.pbit` in Power BI Desktop. It asks for the parameter values. If it does not, use **Home > Transform data > Edit parameters**.
 
-
 ### 3.2 Enter Your Values
 
 Enter your own values:
 
-   | Parameter | Value |
-   |-----------|-------|
-   | Snowflake Server | `<org>-<account>.snowflakecomputing.com` |
-   | Snowflake Warehouse | `TB_PBI_WH` |
-   | Snowflake Role | `TB_PBI_ANALYST` |
-   | Snowflake Database | `TB_PBI_DEMO` |
-   | Snowflake Schema | `POWERBI` |
+| Parameter | Value |
+|-----------|-------|
+| Snowflake Server | `<org>-<account>.snowflakecomputing.com` |
+| Snowflake Warehouse | `TB_PBI_WH` |
+| Snowflake Role | `TB_PBI_ANALYST` |
+| Snowflake Database | `TB_PBI_DEMO` |
+| Snowflake Schema | `POWERBI` |
 
-   Get `<org>` and `<account>` by running this, then change any underscores to hyphens:
+Get `<org>` and `<account>` by running this, then change any underscores to hyphens:
 
-   ```sql
-   SELECT CURRENT_ORGANIZATION_NAME(), CURRENT_ACCOUNT_NAME();
-   ```
-
+```sql
+SELECT CURRENT_ORGANIZATION_NAME(), CURRENT_ACCOUNT_NAME();
+```
 
 ### 3.3 Sign In to Snowflake
 
 Sign in to Snowflake when asked and let the report load. Key-pair authentication works.
 
-
 ### 3.4 Save Your Own Copy
 
 Choose **File > Export > Power BI template** and save it, for example as `my-tastybytes.pbit`. This is the file you use in step 4.
-
 
 ### 3.5 Check It Works
 
