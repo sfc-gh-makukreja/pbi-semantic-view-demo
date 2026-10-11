@@ -1,0 +1,32 @@
+site_name: From Power BI to a Snowflake Semantic View
+site_description: Hands-on lab - import a Power BI template into a Snowflake semantic view with Semantic View Autopilot
+repo_url: https://github.com/sfc-gh-makukreja/pbi-semantic-view-demo
+docs_dir: .site_src
+theme:
+  name: material
+  palette:
+    primary: light blue
+  features:
+    - navigation.footer
+    - content.code.copy
+    - toc.integrate
+markdown_extensions:
+  - admonition
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.superfences
+  - pymdownx.details
+nav:
+  - Overview: index.md
+  - Setup: setup.md
+  - "1 Build the Data Foundation": step-1.md
+  - "2 Verify": step-2.md
+  - "3 Point the Template at Your Account": step-3.md
+  - "4 Import with Autopilot": step-4.md
+  - "5 Review What Converted": step-5.md
+  - "6 Query with SQL": step-6.md
+  - "7 Ask in Natural Language": step-7.md
+  - "8 Reconnect Power BI": step-8.md
+  - "9 Clean Up": step-9.md
+  - Troubleshooting: troubleshooting.md
