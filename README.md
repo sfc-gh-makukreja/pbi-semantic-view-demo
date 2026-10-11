@@ -94,8 +94,9 @@ The template `powerbi/TastyBytes_bound.pbit` reads its five Snowflake connection
 
 Autopilot reads the parameter values from the file you give it. If they are blank or wrong, it drops every table (`UNBOUND_PARAMETERS`).
 
-1. Open `TastyBytes_bound.pbit` in Power BI Desktop. It asks for the parameter values. If it does not, use **Home > Transform data > Edit parameters**.
-2. Enter your own values:
+**3.1** Open `TastyBytes_bound.pbit` in Power BI Desktop. It asks for the parameter values. If it does not, use **Home > Transform data > Edit parameters**.
+
+**3.2** Enter your own values:
 
    | Parameter | Value |
    |-----------|-------|
@@ -110,10 +111,12 @@ Autopilot reads the parameter values from the file you give it. If they are blan
    ```sql
    SELECT CURRENT_ORGANIZATION_NAME(), CURRENT_ACCOUNT_NAME();
    ```
-3. Sign in to Snowflake when asked and let the report load. Key-pair authentication works.
-4. Choose **File > Export > Power BI template** and save it, for example as `my-tastybytes.pbit`. This is the file you use in step 4.
 
-### Check It Works
+**3.3** Sign in to Snowflake when asked and let the report load. Key-pair authentication works.
+
+**3.4** Choose **File > Export > Power BI template** and save it, for example as `my-tastybytes.pbit`. This is the file you use in step 4.
+
+### 3.5 Check It Works
 
 Once the report loads, you should see the **Order Summary** page. The headline numbers must match Snowflake exactly:
 
@@ -136,7 +139,7 @@ This is the model Autopilot will read. Switch to **Model view** (left rail) to s
 
 Now for the payoff: you will let CoCo in Snowsight read the Power BI template and build the semantic view from it.
 
-### Start the Conversation
+### 4.1 Start the Conversation
 
 1. In Snowsight, use role **`TB_PBI_ANALYST`**.
 2. Open your git workspace for this repo (it contains `powerbi/TastyBytes_bound.pbit`), then create or open a semantic view file such as `Untitled.sv.yaml`.
@@ -156,15 +159,15 @@ Now for the payoff: you will let CoCo in Snowsight read the Power BI template an
 
 Watch what happens. CoCo finds the template in your workspace and walks you through the rest. You answer a couple of questions along the way (see below).
 
-### How the Conversation Flows
+### 4.2 How the Conversation Flows
 
 This is captured from the author's run. Your wording and the order of questions will differ, but the counts should match. The whole conversation has three phases: CoCo reads the template, you choose what to import, then you refine the result.
 
-#### Phase 1: CoCo reads the template
+#### 4.2.1 Phase 1: CoCo reads the template
 
-1. **CoCo finds the template and stages it.** The import tool reads only from a stage, so CoCo copies `TastyBytes_bound.pbit` into `TB_PBI_DEMO.SEMANTIC.PBI_FILES` (the stage created in `sql/03_roles_and_stage.sql`).
+**4.2.1.1 CoCo finds the template and stages it.** The import tool reads only from a stage, so CoCo copies `TastyBytes_bound.pbit` into `TB_PBI_DEMO.SEMANTIC.PBI_FILES` (the stage created in `sql/03_roles_and_stage.sql`).
 
-2. **It summarises the Power BI model.**
+**4.2.1.2 It summarises the Power BI model.**
 
    | Item | Count |
    |---|---|
@@ -176,7 +179,7 @@ This is captured from the author's run. Your wording and the order of questions 
 
    It also calls the model "large", only because it has more than 100 objects.
 
-3. **It maps each Power BI table to a Snowflake table** (columns / measures):
+**4.2.1.3 It maps each Power BI table to a Snowflake table** (columns / measures):
 
    | Power BI table | Snowflake table in `TB_PBI_DEMO.POWERBI` | Cols / measures |
    |---|---|---|
@@ -193,7 +196,7 @@ This is captured from the author's run. Your wording and the order of questions 
 
    The mapping works because the Snowflake table names match the Power BI table sources exactly, including the `customer_favorite_band` spelling.
 
-4. **It sorts the 7 measures.**
+**4.2.1.4 It sorts the 7 measures.**
 
    | Measure | DAX | Result |
    |---|---|---|
@@ -205,9 +208,9 @@ This is captured from the author's run. Your wording and the order of questions 
    | Order Amt PYTD | `SAMEPERIODLASTYEAR` | may not convert |
    | YoY Order Amt Growth | uses `SAMEPERIODLASTYEAR` | may not convert |
 
-#### Phase 2: You choose what to import
+#### 4.2.2 Phase 2: You choose what to import
 
-5. **It flags the three fact tables and asks how much to import.** The options are:
+**4.2.2.1 It flags the three fact tables and asks how much to import.** The options are:
 
    1. Everything as-is.
    2. Everything except Order Agg (CoCo's recommendation).
@@ -217,7 +220,7 @@ This is captured from the author's run. Your wording and the order of questions 
 
    **Choose option 3 and say yes to the descriptions.** `Order Agg` and `Order Header` are hidden Power BI **aggregation tables**: every column carries an `alternateOf` pointer back to `Order Details`, so Power BI can answer summary queries from a smaller table. A semantic view has no use for that trick, and importing them would add duplicate paths to the same numbers.
 
-6. **You get a valid semantic view definition.**
+**4.2.2.2 You get a valid semantic view definition.**
 
    | Item | Value |
    |---|---|
@@ -231,7 +234,7 @@ This is captured from the author's run. Your wording and the order of questions 
    | AI descriptions | on the metrics only |
    | Dropped | 3 time-intelligence measures (YTD, PYTD, YoY) |
 
-7. **It flags column types worth fixing, and offers next steps:** descriptions for tables and columns, recreating YTD/PYTD/YoY as SQL metrics (this needs your approval), fixing the column types, an audit, and deploying to `TB_PBI_DEMO.SEMANTIC.TASTY_BYTES_SV`.
+**4.2.2.3 It flags column types worth fixing, and offers next steps:** descriptions for tables and columns, recreating YTD/PYTD/YoY as SQL metrics (this needs your approval), fixing the column types, an audit, and deploying to `TB_PBI_DEMO.SEMANTIC.TASTY_BYTES_SV`.
 
    - **IDs come through as `FLOAT`.** Power BI types every number as `double`, but Snowflake stores the IDs as `NUMBER(38,0)`. Fix the ID columns and `Truck.FRANCHISE_ID` (Power BI summarises it by count).
    - **`Date.YEAR` is `TEXT`.** It is stored as text in Snowflake, so leave it.
@@ -239,11 +242,11 @@ This is captured from the author's run. Your wording and the order of questions 
 
 > **Tip —** Do not worry if your wording differs. If the counts match (10 tables, 108 columns, 7 measures, 18 relationships, then 8 tables, 89 columns, 7 relationships, 4 metrics), you are on track.
 
-#### Phase 3: You refine it
+#### 4.2.3 Phase 3: You refine it
 
 Ask CoCo to do these three things, in this order.
 
-8. **Fix the column types.** Ask CoCo to limit the fix to the IDs and `FRANCHISE_ID`. CoCo has no edit that changes a data type directly, so it removes each column and re-adds a corrected one, then validates the YAML in Snowflake.
+**4.2.3.1 Fix the column types.** Ask CoCo to limit the fix to the IDs and `FRANCHISE_ID`. CoCo has no edit that changes a data type directly, so it removes each column and re-adds a corrected one, then validates the YAML in Snowflake.
 
    | Change | Columns |
    |---|---|
@@ -253,7 +256,7 @@ Ask CoCo to do these three things, in this order.
 
    `ORDER_COUNT` still works afterwards, because it counts distinct IDs. The YAML stays valid.
 
-9. **Recreate YTD, PYTD and YoY.** `TOTALYTD` adjusts to whatever date the Power BI report is filtered to. A semantic view metric cannot read a report filter, so CoCo has to fix a reference date and asks you to choose:
+**4.2.3.2 Recreate YTD, PYTD and YoY.** `TOTALYTD` adjusts to whatever date the Power BI report is filtered to. A semantic view metric cannot read a report filter, so CoCo has to fix a reference date and asks you to choose:
 
    | Anchor | Behaviour |
    |---|---|
@@ -281,7 +284,7 @@ Ask CoCo to do these three things, in this order.
 
    > **Not yet observed:** the YTD, PYTD and YoY metrics have not been run through the deployed view. The numbers above come from CoCo's SQL check on the source tables.
 
-10. **Add table and column descriptions.** CoCo drafts a description for the model, all 8 tables and all 92 columns, based on real values in the data (regions, menu categories, the Y/N and 0/1 flags). Each table description states its grain, and the model description gives the data range, 2019-01-01 to 2022-11-01. The YAML stays valid, and it is still **not deployed**.
+**4.2.3.3 Add table and column descriptions.** CoCo drafts a description for the model, all 8 tables and all 92 columns, based on real values in the data (regions, menu categories, the Y/N and 0/1 flags). Each table description states its grain, and the model description gives the data range, 2019-01-01 to 2022-11-01. The YAML stays valid, and it is still **not deployed**.
 
     ![The visual editor showing the model description and the logical tables](docs/images/05-semantic-view-overview.png)
 
@@ -289,7 +292,7 @@ Ask CoCo to do these three things, in this order.
 
     > **Tip —** A few leftovers from the Power BI import are harmless. For example, `Franchise` keeps a `ROW_NUM` fact typed `FLOAT`, which CoCo describes as a technical row number that is not meaningful for analysis. Remove it if you want a cleaner view.
 
-11. **Deploy and audit.** Tell CoCo to audit and deploy. The quality score is computed from the deployed view, so CoCo deploys first, then audits. The view is created as `TB_PBI_DEMO.SEMANTIC.TASTY_BYTES_SV`, owned by `TB_PBI_ANALYST`.
+**4.2.3.4 Deploy and audit.** Tell CoCo to audit and deploy. The quality score is computed from the deployed view, so CoCo deploys first, then audits. The view is created as `TB_PBI_DEMO.SEMANTIC.TASTY_BYTES_SV`, owned by `TB_PBI_ANALYST`.
 
     CoCo then runs the new metrics against the live view. They match the earlier SQL check exactly:
 
@@ -325,7 +328,7 @@ Ask CoCo to do these three things, in this order.
 
     ![The three time-intelligence metrics and the first relationships](docs/images/07-semantic-view-metrics-relationships.png)
 
-12. **Generate verified queries.** Verified queries are question and SQL pairs that Cortex Analyst treats as known-good answers. They are the biggest single lever on the quality score.
+**4.2.3.5 Generate verified queries.** Verified queries are question and SQL pairs that Cortex Analyst treats as known-good answers. They are the biggest single lever on the quality score.
 
     ```
     Generate verified queries to improve the quality score
@@ -349,39 +352,39 @@ Ask CoCo to do these three things, in this order.
 
     Still open after this step: the hard-coded `2022-11-01` anchor, personal-data columns, `DATE.YEAR` stored as text, prices modelled as dimensions, and `ROW_NUM`.
 
-### Alternative: the Upload Wizard
+### 4.3 Alternative: the Upload Wizard
 
 If you prefer clicking to chatting, the guided wizard builds a semantic view from the same file with no conversation. It is quick, but it gives you less control.
 
-1. In Snowsight, go to **Workspaces > + Add new > Semantic view** and choose **Guided wizard** (the other options are **Create with CoCo** and **Start blank**).
+**4.3.1** In Snowsight, go to **Workspaces > + Add new > Semantic view** and choose **Guided wizard** (the other options are **Create with CoCo** and **Start blank**).
 
    ![Guided wizard option](docs/images/12-wizard-guided-wizard.png)
 
-2. On **Provide context**, choose **Power BI** and select **Next**.
+**4.3.2** On **Provide context**, choose **Power BI** and select **Next**.
 
    ![Provide context](docs/images/13-wizard-provide-context.png)
 
-3. On **Upload Power BI file**, select **Browse** and pick `TastyBytes_bound.pbit`. The wizard accepts `.pbix` and `.pbit`.
+**4.3.3** On **Upload Power BI file**, select **Browse** and pick `TastyBytes_bound.pbit`. The wizard accepts `.pbix` and `.pbit`.
 
    ![Upload the template](docs/images/14-wizard-upload-pbit.png)
 
-4. Leave **Add sample values** and **Add descriptions** ticked (both are on by default), then select **Next**.
+**4.3.4** Leave **Add sample values** and **Add descriptions** ticked (both are on by default), then select **Next**.
 
    ![Wizard options](docs/images/15-wizard-options.png)
 
-5. Name the view `WIZARD_TASTYBYTES_SV`, keep the target name `default`, store it in `TB_PBI_DEMO.SEMANTIC`, and select **Publish**. A different name keeps it apart from the `TASTY_BYTES_SV` you built with CoCo.
+**4.3.5** Name the view `WIZARD_TASTYBYTES_SV`, keep the target name `default`, store it in `TB_PBI_DEMO.SEMANTIC`, and select **Publish**. A different name keeps it apart from the `TASTY_BYTES_SV` you built with CoCo.
 
    ![Name the semantic view](docs/images/16-wizard-name.png)
 
-6. Wait while the wizard generates the view (it can take up to 10 minutes). **Show details** lists each stage and any warnings.
+**4.3.6** Wait while the wizard generates the view (it can take up to 10 minutes). **Show details** lists each stage and any warnings.
 
    ![Generation details](docs/images/17-wizard-generating.png)
 
-7. When it finishes, the wizard reports **Your semantic view is ready**, with no errors and a suggestions panel on the right.
+**4.3.7** When it finishes, the wizard reports **Your semantic view is ready**, with no errors and a suggestions panel on the right.
 
    ![Semantic view is ready](docs/images/18-wizard-ready.png)
 
-### What the Wizard Produced
+### 4.4 What the Wizard Produced
 
 | | Upload Wizard | CoCo (Step 4) |
 |---|---|---|
@@ -500,7 +503,7 @@ The numbers match the totals you verified in step 6: 2019 is 7,413,440.50, 2020 
 
 The point to land: the report now reads governed metrics that are defined once, in Snowflake.
 
-### Extended Test (Not Yet Run)
+### 8.1 Extended Test (Not Yet Run)
 
 Rebuild the visuals of the original Order Summary report on top of the semantic view, so every measure comes from `AGG()` instead of DAX.
 
@@ -520,16 +523,3 @@ Run `sql/99_teardown.sql`. It drops `TB_PBI_DEMO`, `TB_PBI_WH` and `TB_PBI_ANALY
 | `Schema ... does not exist or not authorized` in step 6 | Expected for `RAW_POS`. For `POWERBI` or `SEMANTIC`, re-run step 1 part 3 |
 | Role test passes when it should fail | Run `USE SECONDARY ROLES NONE` first |
 | Power BI cannot connect | Check the server host (hyphens, not underscores) and that you sign in as a user holding `TB_PBI_ANALYST` |
-
-## Test Status of This Guide
-
-| Step | Status |
-|------|--------|
-| 1 Data foundation | Tested: counts match the source data exactly |
-| 2 Verify | Tested: 7/7 PASS, role boundary confirmed |
-| 3 Point template at your account | Tested by the author: the template opens in Power BI Desktop, connects (key-pair auth) and totals match Snowflake exactly. **Not yet tested:** that File > Export keeps the parameter values for Autopilot |
-| 4 Autopilot import | Tested by the author via CoCo: import, refine, deploy and audit done; all totals verified on the deployed view. Wizard route run and documented, but its view was not queried |
-| 5 Conversion review | **Expectations from the docs, not yet observed** |
-| 6 Query | Tested by the author: yearly `AGG(ORDER_AMT)` query matches Snowflake |
-| 7 Natural language | One question tested in the Playground (sales by year, totals match). **Not yet run:** the other two examples |
-| 8 Power BI reconnect | Tested by the author on Windows: the `AGG()` query loads and the yearly totals match Snowflake. **Not yet run:** rebuilding the original report's visuals |
