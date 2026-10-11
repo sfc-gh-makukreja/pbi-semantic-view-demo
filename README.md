@@ -20,7 +20,7 @@ Power BI, Cortex Analyst and AI agents, with no re-keying.
 |---|------|-----------------|
 | 1 | Build the data foundation | Tasty Bytes star schema in `TB_PBI_DEMO.POWERBI` |
 | 2 | Verify it | 7 checks, all `PASS` |
-| 3 | Prepare the Power BI template | A `.pbit` bound to *your* account |
+| 3 | Point the Power BI template at your account | A `.pbit` exported from Power BI Desktop with your connection details |
 | 4 | Import it with Semantic View Autopilot | A semantic view generated from the Power BI model |
 | 5 | Review what converted | Which measures made it, which did not, and why |
 | 6 | Query the semantic view | Governed metrics from plain SQL |
@@ -28,14 +28,13 @@ Power BI, Cortex Analyst and AI agents, with no re-keying.
 | 8 | Reconnect Power BI to Snowflake | Power BI reading the semantic view |
 | 9 | Clean up | Everything removed |
 
-Steps 1-7 work on any laptop. **Power BI Desktop runs on Windows only**, so Mac users can do everything
-except step 8.
+Steps 1-2 work on any laptop. **Power BI Desktop runs on Windows only**, and steps 3 and 8 need it, so you need a
+Windows machine (or VM) for the Power BI parts of the lab.
 
 ## Prerequisites
 
 - A Snowflake account where you can use `ACCOUNTADMIN` (a trial account is fine: <https://tinyurl.com/spn-hol>).
-- Python 3 (only for step 3, standard library only).
-- Optional: Power BI Desktop (Windows) for step 8 and for the manual route in step 3.
+- Power BI Desktop on Windows (free) for steps 3 and 8.
 
 ## Where the data comes from
 
@@ -55,8 +54,7 @@ sql/02_star_schema.sql        date/time dimensions + dynamic tables (the model P
 sql/03_roles_and_stage.sql    least-privilege analyst role + stage for the template upload
 sql/04_verify.sql             checks that everything is right
 sql/99_teardown.sql           removes everything
-powerbi/Tasty Bytes Direct Query Quickstart.pbit    the Power BI template (parameters blank)
-scripts/bind_pbit.py          fills in the template's connection parameters
+powerbi/TastyBytes_bound.pbit    the Power BI template (a DirectQuery model of the star schema)
 docs/images/                  screenshots used in this guide
 ```
 
@@ -97,35 +95,34 @@ that error is the pass.
 > **Gotcha:** run `USE SECONDARY ROLES NONE` before testing a role. If your other roles stay active,
 > the test passes even when the role is wrong.
 
-## Step 3 - Prepare the Power BI template
+## Step 3 - Point the Power BI template at your account (Windows)
 
-The template ships with its five Snowflake connection parameters empty. If you upload it as is,
-Autopilot drops every table (`UNBOUND_PARAMETERS`). Fill them in with **one** of these routes.
+The template `powerbi/TastyBytes_bound.pbit` reads its five Snowflake connection details from parameters, and
+the values saved in the file belong to the lab author's account. You must replace them with yours, **then export a
+new template**. Autopilot reads the parameter values from the file you upload; if they are blank or wrong it
+drops every table (`UNBOUND_PARAMETERS`).
 
-### Route A - script (no Power BI needed)
+1. Open `TastyBytes_bound.pbit` in Power BI Desktop. It asks for the parameter values; if it does not, use
+   **Home > Transform data > Edit parameters**.
+2. Enter your own values:
 
-Use your own account host. Take the org and account name from `SELECT CURRENT_ORGANIZATION_NAME(),
-CURRENT_ACCOUNT_NAME();` and turn underscores into hyphens.
+   | Parameter | Value |
+   |-----------|-------|
+   | Snowflake Server | `<org>-<account>.snowflakecomputing.com` |
+   | Snowflake Warehouse | `TB_PBI_WH` |
+   | Snowflake Role | `TB_PBI_ANALYST` |
+   | Snowflake Database | `TB_PBI_DEMO` |
+   | Snowflake Schema | `POWERBI` |
 
-```bash
-python3 scripts/bind_pbit.py --server <org>-<account>.snowflakecomputing.com
-```
+   Get `<org>` and `<account>` from `SELECT CURRENT_ORGANIZATION_NAME(), CURRENT_ACCOUNT_NAME();` and change
+   any underscores to hyphens.
+3. Sign in to Snowflake when asked and let the report load. (Key-pair authentication works.)
+4. **File > Export > Power BI template** and save it, for example as `my-tastybytes.pbit`. This is the file you
+   upload in step 4.
 
-This writes `powerbi/TastyBytes_bound.pbit`. The script changes only the five parameter values; the
-tables, relationships and measures are untouched.
+### Check it works
 
-### Route B - Power BI Desktop (Windows)
-
-1. Open `Tasty Bytes Direct Query Quickstart.pbit`.
-2. Enter Server = `<org>-<account>.snowflakecomputing.com`, Warehouse = `TB_PBI_WH`,
-   Role = `TB_PBI_ANALYST`, Database = `TB_PBI_DEMO`, Schema = `POWERBI`.
-3. Sign in to Snowflake when asked and let the report load.
-4. **File > Export > Power BI template** and save it.
-
-### Check it works (Windows)
-
-Open the bound `.pbit` in Power BI Desktop and sign in to Snowflake (key-pair authentication works). You
-should see the **Order Summary** page, and the headline numbers must match Snowflake exactly:
+Once the report loads in Power BI Desktop you should see the **Order Summary** page, and the headline numbers must match Snowflake exactly:
 
 | Card | Value |
 |------|-------|
@@ -152,7 +149,7 @@ convert in step 5.
 1. In Snowsight, switch to role **`TB_PBI_ANALYST`**.
 2. Go to **Workspaces > Add new > Semantic View**.
 3. Location: database `TB_PBI_DEMO`, schema `SEMANTIC`. Name it `TASTY_BYTES_SV`.
-4. When asked for context, choose **Upload Power BI file** and select your bound `.pbit`.
+4. When asked for context, choose **Upload Power BI file** and select the template you exported in step 3.
    The upload stage is `TB_PBI_DEMO.SEMANTIC.PBI_FILES`.
 5. Select the tables from `TB_PBI_DEMO.POWERBI` (all ten), then **Create and save**.
 
@@ -235,7 +232,7 @@ semantic views you created inside the database.
 
 | Symptom | Fix |
 |---------|-----|
-| Autopilot says `UNBOUND_PARAMETERS` or finds no tables | The template's parameters are still empty. Redo step 3 |
+| Autopilot says `UNBOUND_PARAMETERS` or finds no tables | The template you uploaded still has empty or wrong parameters. Redo step 3 and upload the **exported** file |
 | Autopilot cannot see tables | You are not on `TB_PBI_ANALYST`, or `03_roles_and_stage.sql` did not finish |
 | A verify check shows `FAIL` | Re-run the file named in the message |
 | `Schema ... does not exist or not authorized` in step 6 | Expected for `RAW_POS`; for `POWERBI`/`SEMANTIC`, re-run step 1 part 3 |
@@ -248,7 +245,7 @@ semantic views you created inside the database.
 |------|--------|
 | 1 Data foundation | Tested: counts match the source data exactly |
 | 2 Verify | Tested: 7/7 PASS, role boundary confirmed |
-| 3 Bind template | Tested: only 5 parameter values differ from the original; opens in Power BI Desktop, connects (key-pair auth) and totals match Snowflake exactly |
+| 3 Point template at your account | Tested by the author: the template opens in Power BI Desktop, connects (key-pair auth) and totals match Snowflake exactly. **Not yet tested:** that File > Export keeps the parameter values for Autopilot |
 | 4 Autopilot import | **Not yet run** |
 | 5 Conversion review | **Expectations from the docs, not yet observed** |
 | 6 Query | **Pending step 4**; reference totals are verified |
