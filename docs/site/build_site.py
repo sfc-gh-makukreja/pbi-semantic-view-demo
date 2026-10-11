@@ -2,11 +2,14 @@
 import re, shutil
 from pathlib import Path
 
-root = Path(__file__).resolve().parent.parent
-out = root / ".site_src"
+root = Path(__file__).resolve().parents[2]
+here = Path(__file__).resolve().parent
+out = here / ".build"
 shutil.rmtree(out, ignore_errors=True)
 (out).mkdir()
 shutil.copytree(root / "docs" / "images", out / "images")
+for f in (here / "pages" / "images").glob("*"):
+    shutil.copy(f, out / "images" / f.name)
 
 lines = (root / "README.md").read_text(encoding="utf-8").splitlines()
 
@@ -38,7 +41,7 @@ for i, sec in enumerate(sections):
     title = sec[0][3:].strip()
     if i == 0:
         name, body = "index.md", head + [""] + sec
-        intro = (root / "site_pages" / "intro.md").read_text(encoding="utf-8")
+        intro = (here / "pages" / "intro.md").read_text(encoding="utf-8")
         body_text = intro + "\n" + "\n".join(sec[1:])
         nav.append((title if title != "Overview" else "Overview", name))
     else:
@@ -54,7 +57,7 @@ for i, sec in enumerate(sections):
     (out / name).write_text(body_text + "\n", encoding="utf-8")
 
 (out / "nav.txt").write_text("\n".join(f"{t}|{n}" for t, n in nav), encoding="utf-8")
-for f in (root/"site_pages").glob("*.md"):
+for f in (here / "pages").glob("*.md"):
     if f.name != "intro.md":
         shutil.copy(f, out / f.name)
 print("\n".join(f"{n}  <-  {t}" for t, n in nav))

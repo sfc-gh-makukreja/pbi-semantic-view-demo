@@ -12,6 +12,10 @@ You will do the work with [CoCo](https://docs.snowflake.com/en/user-guide/cortex
 
 A semantic view is a schema-level object that stores business meaning next to the data. It lets you define business metrics and model business entities and their relationships once, so every tool uses the same definitions. See [Overview of semantic views](https://docs.snowflake.com/en/user-guide/views-semantic/overview).
 
+![Diagram showing the Snowflake semantic view between the data layer and transformation tools below and the AI/ML tools, BI tools and data apps, and SQL analysts above](images/semantic-views-diagram.png)
+
+*Source: Snowflake documentation. The semantic view sits between your data and every tool that consumes it.*
+
 Inside a semantic view you define logical tables that map to business entities such as customers, orders or franchises. On them you define three kinds of element:
 
 | Element | What it is | Example in this lab |
