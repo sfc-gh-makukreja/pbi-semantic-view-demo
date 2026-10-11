@@ -349,11 +349,57 @@ Ask CoCo to do these three things, in this order.
 
     Still open after this step: the hard-coded `2022-11-01` anchor, personal-data columns, `DATE.YEAR` stored as text, prices modelled as dimensions, and `ROW_NUM`.
 
-### Alternative: the Upload Wizard (Not Yet Tested)
+### Alternative: the Upload Wizard
 
-You can also go to **Workspaces > Add new > Semantic View**, set the location to `TB_PBI_DEMO.SEMANTIC` and the name to `TASTY_BYTES_SV`, and choose **Upload Power BI file**. Select the template (the upload stage is `TB_PBI_DEMO.SEMANTIC.PBI_FILES`), then select the tables from `TB_PBI_DEMO.POWERBI` and choose **Create and save**.
+If you prefer clicking to chatting, the guided wizard builds a semantic view from the same file with no conversation. It is quick, but it gives you less control.
 
-> **Not yet tested:** the author's run used the template straight from the git workspace, not a file exported in step 3. Whether the exported file is required, and whether the `Server`, `Warehouse` and `Role` values matter for the import, is still open. The author's own account values matched.
+1. In Snowsight, go to **Workspaces > + Add new > Semantic view** and choose **Guided wizard** (the other options are **Create with CoCo** and **Start blank**).
+
+   ![Guided wizard option](docs/images/12-wizard-guided-wizard.png)
+
+2. On **Provide context**, choose **Power BI** and select **Next**.
+
+   ![Provide context](docs/images/13-wizard-provide-context.png)
+
+3. On **Upload Power BI file**, select **Browse** and pick `TastyBytes_bound.pbit`. The wizard accepts `.pbix` and `.pbit`.
+
+   ![Upload the template](docs/images/14-wizard-upload-pbit.png)
+
+4. Leave **Add sample values** and **Add descriptions** ticked (both are on by default), then select **Next**.
+
+   ![Wizard options](docs/images/15-wizard-options.png)
+
+5. Name the view `WIZARD_TASTYBYTES_SV`, keep the target name `default`, store it in `TB_PBI_DEMO.SEMANTIC`, and select **Publish**. A different name keeps it apart from the `TASTY_BYTES_SV` you built with CoCo.
+
+   ![Name the semantic view](docs/images/16-wizard-name.png)
+
+6. Wait while the wizard generates the view (it can take up to 10 minutes). **Show details** lists each stage and any warnings.
+
+   ![Generation details](docs/images/17-wizard-generating.png)
+
+7. When it finishes, the wizard reports **Your semantic view is ready**, with no errors and a suggestions panel on the right.
+
+   ![Semantic view is ready](docs/images/18-wizard-ready.png)
+
+### What the Wizard Produced
+
+| | Upload Wizard | CoCo (Step 4) |
+|---|---|---|
+| Logical tables | 10, including the Power BI aggregation tables `ORDER_AGG` and `ORDER_HEADER` | 8, with the aggregation tables dropped |
+| Dimensions, facts | 76 dimensions, 27 facts | Curated set |
+| Relationships | 18 | 7 |
+| Metrics | 4, plus 10 suggested | 7, including YTD, PYTD and YoY |
+| Verified queries | None | 11 |
+| Time-intelligence DAX | Not converted | Converted to SQL metrics |
+
+The wizard raised two warnings:
+
+- Power BI view generation is not yet supported, so some measures or calculated columns may be left out.
+- 3 of 7 DAX measures could not be converted: `Order Amt YTD` and `Order Amt PYTD` (unsupported DAX), and `YoY Order Amt Growth` (missing table or column).
+
+Use the wizard for a fast first draft. Use CoCo when you want the time-intelligence measures and verified queries, which is why the rest of this guide continues with `TASTY_BYTES_SV`.
+
+> **Note:** the author ran the wizard on `TastyBytes_bound.pbit` straight from the git workspace, not on a file exported in step 3. Whether the wizard's output depends on the `Server`, `Warehouse` and `Role` values in the file has not been tested. The wizard view was not queried or compared to Snowflake totals.
 
 ## Step 5 - Review What Converted
 
@@ -466,7 +512,7 @@ Run `sql/99_teardown.sql`. It drops `TB_PBI_DEMO`, `TB_PBI_WH` and `TB_PBI_ANALY
 | 1 Data foundation | Tested: counts match the source data exactly |
 | 2 Verify | Tested: 7/7 PASS, role boundary confirmed |
 | 3 Point template at your account | Tested by the author: the template opens in Power BI Desktop, connects (key-pair auth) and totals match Snowflake exactly. **Not yet tested:** that File > Export keeps the parameter values for Autopilot |
-| 4 Autopilot import | Tested by the author via CoCo: import, refine, deploy and audit done; all totals verified on the deployed view. **Not yet run:** the wizard route |
+| 4 Autopilot import | Tested by the author via CoCo: import, refine, deploy and audit done; all totals verified on the deployed view. Wizard route run and documented, but its view was not queried |
 | 5 Conversion review | **Expectations from the docs, not yet observed** |
 | 6 Query | **Pending step 4**; reference totals are verified |
 | 7 Natural language | **Pending step 4** |
