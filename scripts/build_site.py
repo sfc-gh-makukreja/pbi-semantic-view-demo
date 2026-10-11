@@ -54,4 +54,7 @@ for i, sec in enumerate(sections):
     (out / name).write_text(body_text + "\n", encoding="utf-8")
 
 (out / "nav.txt").write_text("\n".join(f"{t}|{n}" for t, n in nav), encoding="utf-8")
+for f in (root/"site_pages").glob("*.md"):
+    if f.name != "intro.md":
+        shutil.copy(f, out / f.name)
 print("\n".join(f"{n}  <-  {t}" for t, n in nav))

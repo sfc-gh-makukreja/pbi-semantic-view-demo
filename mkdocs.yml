@@ -20,6 +20,7 @@ markdown_extensions:
 nav:
   - Overview: index.md
   - Setup: setup.md
+  - Before You Migrate a Real Model: before-you-migrate.md
   - "1 Build the Data Foundation": step-1.md
   - "2 Verify": step-2.md
   - "3 Point the Template at Your Account": step-3.md
