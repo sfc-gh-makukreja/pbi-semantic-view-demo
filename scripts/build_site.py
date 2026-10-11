@@ -38,8 +38,8 @@ for i, sec in enumerate(sections):
     title = sec[0][3:].strip()
     if i == 0:
         name, body = "index.md", head + [""] + sec
-        body = [l for l in body]
-        body_text = "\n".join(body)
+        intro = (root / "site_pages" / "intro.md").read_text(encoding="utf-8")
+        body_text = intro + "\n" + "\n".join(sec[1:])
         nav.append((title if title != "Overview" else "Overview", name))
     else:
         m = re.match(r"Step (\d+)", title)

@@ -2,6 +2,8 @@
 
 **Hands-on lab · NZ SI Partner HOL · Demo 4**
 
+**Read this lab on the web:** <https://sfc-gh-makukreja.github.io/pbi-semantic-view-demo/>
+
 ## Overview
 
 You already have business logic in Power BI: measures, relationships, a data model your customers trust. In this lab you bring that logic into Snowflake as a **semantic view**, so the same definitions power Power BI, Cortex Analyst and AI agents, with no re-keying.
