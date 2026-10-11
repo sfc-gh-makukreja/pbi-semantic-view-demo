@@ -1,0 +1,599 @@
+name: TASTY_BYTES_SV
+description: This semantic view supports sales analytics for Tasty Bytes, a global food truck business. It models orders at the order line level, where each row is one menu item on one order. It enables analysis of revenue, order volume and quantity sold by customer, menu item, truck, franchise, sales location, date and time of day, plus year-to-date and year-over-year comparisons. Order history covers 2019-01-01 through 2022-11-01. Pre-aggregated order header and order summary tables from the original Power BI model are excluded.
+tables:
+  - name: CUSTOMER
+    description: "Represents loyalty program customers of Tasty Bytes food trucks. Grain: one row per customer. Holds demographic, contact and sign-up attributes used to segment revenue and order behavior. Linked many-to-one from order lines; orders without a known loyalty customer have no matching customer."
+    base_table:
+      database: TB_PBI_DEMO
+      schema: POWERBI
+      table: DT_DIM_CUSTOMER
+    primary_key:
+      columns:
+        - CUSTOMER_ID
+    dimensions:
+      - name: CUSTOMER_ID
+        expr: CUSTOMER_ID
+        data_type: NUMBER
+        description: Unique identifier for each loyalty customer. Primary key of the customer table and join key to order lines.
+      - name: CUSTOMER_FIRST_NAME
+        expr: CUSTOMER_FIRST_NAME
+        data_type: TEXT
+        description: Customer's first (given) name.
+      - name: CUSTOMER_LAST_NAME
+        expr: CUSTOMER_LAST_NAME
+        data_type: TEXT
+        description: Customer's last (family) name.
+      - name: CUSTOMER_FULL_NAME
+        expr: CUSTOMER_FULL_NAME
+        data_type: TEXT
+        description: Customer's full name in first-name, last-name order. Use to display or search for a specific customer.
+      - name: CUSTOMER_CITY
+        expr: CUSTOMER_CITY
+        data_type: TEXT
+        description: City where the customer lives.
+      - name: CUSTOMER_COUNTRY
+        expr: CUSTOMER_COUNTRY
+        data_type: TEXT
+        description: Country where the customer lives.
+      - name: CUSTOMER_POSTAL_CODE
+        expr: CUSTOMER_POSTAL_CODE
+        data_type: TEXT
+        description: Postal or ZIP code of the customer's home address.
+      - name: CUSTOMER_PREFERRED_LANGUAGE
+        expr: CUSTOMER_PREFERRED_LANGUAGE
+        data_type: TEXT
+        description: Language the customer prefers for communications.
+      - name: CUSTOMER_GENDER
+        expr: CUSTOMER_GENDER
+        data_type: TEXT
+        description: "Customer's self-reported gender. Values: Female, Male, Undisclosed."
+      - name: CUSTOMER_FAVORITE_BAND
+        expr: CUSTOMER_FAVORITE_BAND
+        data_type: TEXT
+        description: Customer's self-reported favorite music band, captured at loyalty sign-up.
+      - name: CUSTOMER_MARITAL_STATUS
+        expr: CUSTOMER_MARITAL_STATUS
+        data_type: TEXT
+        description: "Customer's self-reported marital status. Values: Single, Married, Divorced/Seperated (spelled this way in the data), Undisclosed."
+      - name: CUSTOMER_CHILDREN_COUNT
+        expr: CUSTOMER_CHILDREN_COUNT
+        data_type: TEXT
+        description: "Number of children the customer reports, stored as text. Values: 0, 1, 2, 3, 4, 5+, Undisclosed."
+      - name: CUSTOMER_EMAIL
+        expr: CUSTOMER_EMAIL
+        data_type: TEXT
+        description: Customer's email address. Personal contact information.
+      - name: CUSTOMER_PHONE_NUMBER
+        expr: CUSTOMER_PHONE_NUMBER
+        data_type: TEXT
+        description: Customer's phone number. Personal contact information.
+      - name: CUSTOMER_LAST_FIRST_NAME
+        expr: CUSTOMER_LAST_FIRST_NAME
+        data_type: TEXT
+        description: Customer's full name in last-name, first-name order, for alphabetical sorting.
+    time_dimensions:
+      - name: CUSTOMER_DOB
+        expr: CUSTOMER_DOB
+        data_type: TIMESTAMP
+        description: Customer's date of birth. Use to derive age or age bands.
+      - name: CUSTOMER_SIGNUP_DATE
+        expr: CUSTOMER_SIGNUP_DATE
+        data_type: TIMESTAMP
+        description: Date the customer joined the loyalty program. Use for customer tenure and cohort analysis.
+  - name: DATE
+    description: "Represents the calendar. Grain: one row per calendar day. Provides year, month, week and weekday attributes for time-based analysis of orders and is the reference calendar for year-to-date metrics."
+    base_table:
+      database: TB_PBI_DEMO
+      schema: POWERBI
+      table: DIM_DATE
+    primary_key:
+      columns:
+        - DATE_ID
+    dimensions:
+      - name: YEAR
+        expr: YEAR
+        data_type: TEXT
+        description: Calendar year, stored as text (for example 2022).
+      - name: MONTH_NAME
+        expr: MONTH_NAME
+        data_type: TEXT
+        description: Name of the calendar month.
+      - name: WEEKDAY
+        expr: WEEKDAY
+        data_type: TEXT
+        description: "Abbreviated day of the week. Values: Mon, Tue, Wed, Thu, Fri, Sat, Sun."
+      - name: WEEKEND_FLAG
+        expr: WEEKEND_FLAG
+        data_type: BOOLEAN
+        description: True when the date falls on a Saturday or Sunday, otherwise false. Use to compare weekend and weekday sales.
+      - name: DATE_ID
+        expr: DATE_ID
+        data_type: NUMBER
+        description: Unique identifier for each calendar day. Primary key of the date table and join key to order lines.
+    time_dimensions:
+      - name: DATE
+        expr: DATE
+        data_type: TIMESTAMP
+        description: Calendar date. The primary date for filtering and trending orders by day, month or year.
+    facts:
+      - name: MONTH
+        expr: MONTH
+        data_type: FLOAT
+        description: Calendar month number, from 1 (January) to 12 (December).
+      - name: DAY_OF_MONTH
+        expr: DAY_OF_MONTH
+        data_type: FLOAT
+        description: Day number within the month, from 1 to 31.
+      - name: DAY_OF_WEEK
+        expr: DAY_OF_WEEK
+        data_type: FLOAT
+        description: Day number within the week.
+      - name: WEEK_OF_YEAR
+        expr: WEEK_OF_YEAR
+        data_type: FLOAT
+        description: Week number within the calendar year.
+      - name: DAY_OF_YEAR
+        expr: DAY_OF_YEAR
+        data_type: FLOAT
+        description: Day number within the calendar year, from 1 to 366.
+  - name: FRANCHISE
+    description: "Represents franchise owners who operate food trucks under the Tasty Bytes brands. Grain: one row per franchise. Holds owner name, contact details and home city and country for franchise-level performance analysis."
+    base_table:
+      database: TB_PBI_DEMO
+      schema: POWERBI
+      table: DT_DIM_FRANCHISE
+    primary_key:
+      columns:
+        - FRANCHISE_ID
+    dimensions:
+      - name: FRANCHISE_ID
+        expr: FRANCHISE_ID
+        data_type: NUMBER
+        description: Unique identifier for each franchise. Primary key of the franchise table and join key to order lines.
+      - name: FRANCHISE_FIRST_NAME
+        expr: FRANCHISE_FIRST_NAME
+        data_type: TEXT
+        description: First name of the franchise owner.
+      - name: FRANCHISE_LAST_NAME
+        expr: FRANCHISE_LAST_NAME
+        data_type: TEXT
+        description: Last name of the franchise owner.
+      - name: FRANCHISE_CITY
+        expr: FRANCHISE_CITY
+        data_type: TEXT
+        description: Home city of the franchise.
+      - name: FRANCHISE_COUNTRY
+        expr: FRANCHISE_COUNTRY
+        data_type: TEXT
+        description: Home country of the franchise.
+      - name: FRANCHISE_EMAIL
+        expr: FRANCHISE_EMAIL
+        data_type: TEXT
+        description: Franchise owner's email address. Contact information.
+      - name: FRANCHISE_PHONE_NUMBER
+        expr: FRANCHISE_PHONE_NUMBER
+        data_type: TEXT
+        description: Franchise owner's phone number. Contact information.
+    facts:
+      - name: ROW_NUM
+        expr: ROW_NUM
+        data_type: FLOAT
+        description: Technical row number carried over from the source data. Not meaningful for analysis.
+  - name: LOCATION
+    description: "Represents the sales locations where food trucks park and sell, such as venues, businesses and points of interest. Grain: one row per location. Provides city, country and global region for geographic sales analysis."
+    base_table:
+      database: TB_PBI_DEMO
+      schema: POWERBI
+      table: DT_DIM_LOCATION
+    primary_key:
+      columns:
+        - LOCATION_ID
+    dimensions:
+      - name: LOCATION_ID
+        expr: LOCATION_ID
+        data_type: NUMBER
+        description: Unique identifier for each sales location. Primary key of the location table and join key to order lines.
+      - name: LOCATION
+        expr: LOCATION
+        data_type: TEXT
+        description: Name of the place where the truck sold, such as a venue or business.
+      - name: LOCATION_CITY
+        expr: LOCATION_CITY
+        data_type: TEXT
+        description: City of the sales location.
+      - name: LOCATION_REGION
+        expr: LOCATION_REGION
+        data_type: TEXT
+        description: "Global sales region of the location. Values: North America, EMEA, APAC, Other."
+      - name: LOCATION_COUNTRY
+        expr: LOCATION_COUNTRY
+        data_type: TEXT
+        description: Country of the sales location, for example United States, England, Japan or Brazil.
+      - name: LOCATION_COUNTRY_ISO
+        expr: LOCATION_COUNTRY_ISO
+        data_type: TEXT
+        description: ISO country code of the sales location.
+  - name: MENU_ITEM
+    description: "Represents items on the food truck menus. Grain: one row per menu item. Holds menu type (truck cuisine), category, temperature subcategory, list price, cost of goods sold and dietary flags for product mix and pricing analysis."
+    base_table:
+      database: TB_PBI_DEMO
+      schema: POWERBI
+      table: DT_DIM_MENU_ITEM
+    primary_key:
+      columns:
+        - MENU_ITEM_ID
+    dimensions:
+      - name: MENU_ITEM_ID
+        expr: MENU_ITEM_ID
+        data_type: NUMBER
+        description: Unique identifier for each menu item. Primary key of the menu item table and join key to order lines.
+      - name: MENU_TYPE_ID
+        expr: MENU_TYPE_ID
+        data_type: NUMBER
+        description: Identifier for the menu type (truck cuisine) the item belongs to.
+      - name: MENU_TYPE
+        expr: MENU_TYPE
+        data_type: TEXT
+        description: Cuisine or menu the item belongs to, which matches a truck brand's concept. Values include BBQ, Tacos, Ramen, Ice Cream, Grilled Cheese, Hot Dogs, Indian and others.
+      - name: MENU_ITEM_CATEGORY
+        expr: MENU_ITEM_CATEGORY
+        data_type: TEXT
+        description: "Course category of the item. Values: Main, Snack, Beverage, Dessert."
+      - name: MENU_ITEM_SUBCATEGORY
+        expr: MENU_ITEM_SUBCATEGORY
+        data_type: TEXT
+        description: "Serving temperature of the item. Values: Hot Option, Warm Option, Cold Option."
+      - name: MENU_ITEM_NAME
+        expr: MENU_ITEM_NAME
+        data_type: TEXT
+        description: Name of the menu item as sold.
+      - name: COGS_USD
+        expr: COGS_USD
+        data_type: FLOAT
+        description: Cost of goods sold for one unit of the item, in USD. A list attribute of the item, not an order amount.
+      - name: SALE_PRICE_USD
+        expr: SALE_PRICE_USD
+        data_type: FLOAT
+        description: List sale price for one unit of the item, in USD. A list attribute of the item; the price actually charged is on the order line.
+      - name: INGREDIENTS
+        expr: INGREDIENTS
+        data_type: TEXT
+        description: List of ingredients in the item.
+      - name: IS_DAIRY_FREE_FLAG
+        expr: IS_DAIRY_FREE_FLAG
+        data_type: TEXT
+        description: Y if the item is dairy-free, otherwise N.
+      - name: IS_GLUTEN_FREE_FLAG
+        expr: IS_GLUTEN_FREE_FLAG
+        data_type: TEXT
+        description: Y if the item is gluten-free, otherwise N.
+      - name: IS_HEALTHY_FLAG
+        expr: IS_HEALTHY_FLAG
+        data_type: TEXT
+        description: Y if the item is classified as a healthy option, otherwise N.
+      - name: IS_NUT_FREE_FLAG
+        expr: IS_NUT_FREE_FLAG
+        data_type: TEXT
+        description: Y if the item is nut-free, otherwise N.
+  - name: TIME
+    description: "Represents the time of day. Grain: one row per second of the day. Provides hour, minute and AM/PM attributes for analyzing when orders are placed."
+    base_table:
+      database: TB_PBI_DEMO
+      schema: POWERBI
+      table: DIM_TIME
+    primary_key:
+      columns:
+        - TIME_ID
+    dimensions:
+      - name: AM_OR_PM
+        expr: AM_OR_PM
+        data_type: TEXT
+        description: Whether the time is before noon (AM) or after (PM).
+      - name: HOUR_AM_PM
+        expr: HOUR_AM_PM
+        data_type: TEXT
+        description: Hour of the day in 12-hour format, from 12AM to 11PM. Use to analyze sales by hour.
+      - name: TIME_ID
+        expr: TIME_ID
+        data_type: NUMBER
+        description: Unique identifier for each second of the day. Primary key of the time table and join key to order lines.
+    time_dimensions:
+      - name: TIME
+        expr: TIME
+        data_type: TIMESTAMP
+        description: Time of day the order was placed.
+    facts:
+      - name: HOUR
+        expr: HOUR
+        data_type: FLOAT
+        description: Hour of the day in 24-hour format, from 0 to 23.
+      - name: MINUTE
+        expr: MINUTE
+        data_type: FLOAT
+        description: Minute within the hour, from 0 to 59.
+      - name: SECOND
+        expr: SECOND
+        data_type: FLOAT
+        description: Second within the minute, from 0 to 59.
+  - name: TRUCK
+    description: "Represents food trucks in the Tasty Bytes fleet. Grain: one row per truck. Holds brand, operating city and region, vehicle make, model and age, and electric and franchise flags for fleet and truck-level performance analysis."
+    base_table:
+      database: TB_PBI_DEMO
+      schema: POWERBI
+      table: DT_DIM_TRUCK
+    primary_key:
+      columns:
+        - TRUCK_ID
+    dimensions:
+      - name: TRUCK_ID
+        expr: TRUCK_ID
+        data_type: NUMBER
+        description: Unique identifier for each food truck. Primary key of the truck table and join key to order lines.
+      - name: TRUCK_CITY
+        expr: TRUCK_CITY
+        data_type: TEXT
+        description: City where the truck operates.
+      - name: TRUCK_REGION
+        expr: TRUCK_REGION
+        data_type: TEXT
+        description: State, province or regional area where the truck operates, for example California, Ontario or Greater London.
+      - name: TRUCK_REGION_ISO
+        expr: TRUCK_REGION_ISO
+        data_type: TEXT
+        description: ISO code of the truck's operating region.
+      - name: TRUCK_COUNTRY
+        expr: TRUCK_COUNTRY
+        data_type: TEXT
+        description: Country where the truck operates.
+      - name: TRUCK_COUNTRY_ISO
+        expr: TRUCK_COUNTRY_ISO
+        data_type: TEXT
+        description: ISO country code of the truck's operating country.
+      - name: TRUCK_MAKE
+        expr: TRUCK_MAKE
+        data_type: TEXT
+        description: Vehicle manufacturer of the truck.
+      - name: TRUCK_MODEL
+        expr: TRUCK_MODEL
+        data_type: TEXT
+        description: Vehicle model of the truck.
+      - name: TRUCK_BRAND_NAME
+        expr: TRUCK_BRAND_NAME
+        data_type: TEXT
+        description: Customer-facing brand name of the truck.
+      - name: FRANCHISE_ID
+        expr: FRANCHISE_ID
+        data_type: NUMBER
+        description: Identifier of the franchise that operates the truck.
+    time_dimensions:
+      - name: TRUCK_OPENING_DATE
+        expr: TRUCK_OPENING_DATE
+        data_type: TIMESTAMP
+        description: Date the truck started operating.
+    facts:
+      - name: FRANCHISE_FLAG
+        expr: FRANCHISE_FLAG
+        data_type: FLOAT
+        description: 1 if the truck is operated by a franchise, 0 if company-operated.
+      - name: TRUCK_YEAR
+        expr: TRUCK_YEAR
+        data_type: FLOAT
+        description: Model year of the truck vehicle.
+      - name: TRUCK_AGE
+        expr: TRUCK_AGE
+        data_type: FLOAT
+        description: Age of the truck vehicle in years.
+      - name: EV_FLAG
+        expr: EV_FLAG
+        data_type: FLOAT
+        description: 1 if the truck is an electric vehicle, otherwise 0.
+  - name: ORDER_DETAILS
+    description: "Represents food truck sales at the order line level. Grain: one row per menu item within an order, so an order with several items has several rows. This is the central fact table for revenue, order count and quantity metrics and links to customer, menu item, truck, franchise, location, date and time."
+    base_table:
+      database: TB_PBI_DEMO
+      schema: POWERBI
+      table: DT_FACT_ORDER_DETAIL
+    dimensions:
+      - name: TRUCK_ID
+        expr: TRUCK_ID
+        data_type: NUMBER
+        description: Truck that made the sale.
+      - name: FRANCHISE_ID
+        expr: FRANCHISE_ID
+        data_type: NUMBER
+        description: Franchise that operates the truck that made the sale.
+      - name: LOCATION_ID
+        expr: LOCATION_ID
+        data_type: NUMBER
+        description: Location where the sale took place.
+      - name: MENU_ITEM_ID
+        expr: MENU_ITEM_ID
+        data_type: NUMBER
+        description: Menu item sold on this order line.
+      - name: DATE_ID
+        expr: DATE_ID
+        data_type: NUMBER
+        description: Date of the order.
+      - name: TIME_ID
+        expr: TIME_ID
+        data_type: NUMBER
+        description: Time of day of the order.
+      - name: CUSTOMER_ID
+        expr: CUSTOMER_ID
+        data_type: NUMBER
+        description: Loyalty customer who placed the order, if known.
+      - name: ORDER_ID
+        expr: ORDER_ID
+        data_type: NUMBER
+        description: Identifier of the order. Several order lines share one order ID when an order has multiple items; count distinct values to count orders.
+      - name: ORDER_DETAIL_ID
+        expr: ORDER_DETAIL_ID
+        data_type: NUMBER
+        description: Unique identifier for each order line.
+    facts:
+      - name: QUANTITY
+        expr: QUANTITY
+        data_type: FLOAT
+        description: Number of units of the menu item sold on this order line.
+      - name: UNIT_PRICE
+        expr: UNIT_PRICE
+        data_type: FLOAT
+        description: Price charged per unit on this order line, in USD.
+      - name: LINE_TOTAL
+        expr: LINE_TOTAL
+        data_type: FLOAT
+        description: "Revenue for the order line, in USD: unit price multiplied by quantity."
+      - name: ORDER_DATE
+        expr: DATE.DATE
+        data_type: DATE
+        description: Calendar date of the order line, from the Date dimension.
+    metrics:
+      - name: ORDER_COUNT
+        description: Calculates the distinct count of unique orders placed. Use when questions ask about 'number of orders', 'how many orders', 'order volume', or 'transaction count'. Helps measure business activity levels, track order frequency trends over time, and compare order volumes across different periods, locations, or customer segments.
+        expr: (COUNT(DISTINCT ORDER_DETAILS.ORDER_ID) + MAX(IFF((ORDER_DETAILS.ORDER_ID IS NULL), 1, 0)))
+      - name: ORDER_LINE_COUNT
+        description: Counts the total number of order line items across all transactions. Use when questions ask about 'number of items ordered', 'line items', 'product quantity sold', or 'how many products'. Helps analyze product demand patterns, inventory turnover, and the complexity of orders by measuring how many individual items customers purchase.
+        expr: COUNT(*)
+      - name: ORDER_AMT
+        description: Calculates the sum of all order line totals to show total revenue. Use when questions ask about 'total sales', 'revenue', 'sales amount', 'how much money', or 'sales performance'. Helps measure overall business performance, track revenue trends over time, and compare sales across different periods, locations, or customer segments.
+        expr: SUM(ORDER_DETAILS.LINE_TOTAL)
+      - name: ORDER_QTY
+        description: Sums the quantity of all items ordered across transactions. Use when questions ask about 'total quantity sold', 'number of items', 'volume of products', or 'how many units'. Helps analyze product demand, inventory planning, and operational capacity by measuring the total volume of items sold regardless of their individual prices.
+        expr: SUM(ORDER_DETAILS.QUANTITY)
+      - name: ORDER_AMT_YTD
+        description: Year-to-date order revenue (sum of LINE_TOTAL) from Jan 1 of the latest order year through the latest order date in the data (fixed anchor 2022-11-01). Anchored to 2022-11-01, the most recent order date in the data, not today; update the anchor if new data lands. Use for 'YTD sales', 'revenue this year to date'.
+        expr: SUM(IFF(ORDER_DETAILS.ORDER_DATE BETWEEN DATE_TRUNC('year', '2022-11-01'::DATE) AND '2022-11-01'::DATE, ORDER_DETAILS.LINE_TOTAL, 0))
+      - name: ORDER_AMT_PYTD
+        description: "Prior-year-to-date order revenue: the same Jan 1 to latest-order-date window shifted back one year. Use for 'last year YTD', 'PYTD sales', 'same period last year'."
+        expr: SUM(IFF(ORDER_DETAILS.ORDER_DATE BETWEEN DATEADD('year', -1, DATE_TRUNC('year', '2022-11-01'::DATE)) AND DATEADD('year', -1, '2022-11-01'::DATE), ORDER_DETAILS.LINE_TOTAL, 0))
+      - name: YOY_ORDER_AMT_GROWTH
+        description: "Year-over-year YTD revenue growth as a ratio: (ORDER_AMT_YTD - ORDER_AMT_PYTD) / ORDER_AMT_PYTD. NULL when prior-year YTD is zero. Use for 'YoY growth', 'growth vs last year'."
+        expr: (SUM(IFF(ORDER_DETAILS.ORDER_DATE BETWEEN DATE_TRUNC('year', '2022-11-01'::DATE) AND '2022-11-01'::DATE, ORDER_DETAILS.LINE_TOTAL, 0)) - SUM(IFF(ORDER_DETAILS.ORDER_DATE BETWEEN DATEADD('year', -1, DATE_TRUNC('year', '2022-11-01'::DATE)) AND DATEADD('year', -1, '2022-11-01'::DATE), ORDER_DETAILS.LINE_TOTAL, 0))) / NULLIF(SUM(IFF(ORDER_DETAILS.ORDER_DATE BETWEEN DATEADD('year', -1, DATE_TRUNC('year', '2022-11-01'::DATE)) AND DATEADD('year', -1, '2022-11-01'::DATE), ORDER_DETAILS.LINE_TOTAL, 0)), 0)
+relationships:
+  - name: _7FC8A7B1_3734_0AE0_1B29_FB042D28DAB6
+    left_table: ORDER_DETAILS
+    right_table: DATE
+    relationship_columns:
+      - left_column: DATE_ID
+        right_column: DATE_ID
+  - name: _56F635EA_4ED6_8436_D71F_1929D8792A7F
+    left_table: ORDER_DETAILS
+    right_table: CUSTOMER
+    relationship_columns:
+      - left_column: CUSTOMER_ID
+        right_column: CUSTOMER_ID
+  - name: D50588D4_2512_4A70_0858_03A070FC4718
+    left_table: ORDER_DETAILS
+    right_table: FRANCHISE
+    relationship_columns:
+      - left_column: FRANCHISE_ID
+        right_column: FRANCHISE_ID
+  - name: _530F12F6_8848_64F4_C672_75138DA4FA58
+    left_table: ORDER_DETAILS
+    right_table: LOCATION
+    relationship_columns:
+      - left_column: LOCATION_ID
+        right_column: LOCATION_ID
+  - name: DB7D61F3_4C88_E731_4D0D_1BE60709B683
+    left_table: ORDER_DETAILS
+    right_table: MENU_ITEM
+    relationship_columns:
+      - left_column: MENU_ITEM_ID
+        right_column: MENU_ITEM_ID
+  - name: _365BF7FB_78A6_D7DC_8C48_F40B901B0ECE
+    left_table: ORDER_DETAILS
+    right_table: TIME
+    relationship_columns:
+      - left_column: TIME_ID
+        right_column: TIME_ID
+  - name: B98FDE28_C87E_7C9A_9CB1_F9237DEF9EC0
+    left_table: ORDER_DETAILS
+    right_table: TRUCK
+    relationship_columns:
+      - left_column: TRUCK_ID
+        right_column: TRUCK_ID
+verified_queries:
+  - question: How have total orders, units sold, and sales revenue trended year over year?
+    name: How have total orders, units sold, and sales revenue trended year over year?
+    sql: |-
+      WITH yearly_metrics AS (
+          SELECT *
+          FROM SEMANTIC_VIEW(
+              TB_PBI_DEMO.SEMANTIC.TASTY_BYTES_SV
+              METRICS order_count, order_qty, order_amt
+              DIMENSIONS year
+          )
+      )
+      SELECT
+          curr.year AS curr_year,
+          prev.year AS prev_year,
+          curr.order_count AS curr_order_count,
+          prev.order_count AS prev_order_count,
+          curr.order_count - prev.order_count AS order_count_chg,
+          (curr.order_count - prev.order_count) / NULLIF(prev.order_count, 0) AS order_count_pct_chg,
+          curr.order_qty AS curr_order_qty,
+          prev.order_qty AS prev_order_qty,
+          curr.order_qty - prev.order_qty AS order_qty_chg,
+          (curr.order_qty - prev.order_qty) / NULLIF(prev.order_qty, 0) AS order_qty_pct_chg,
+          curr.order_amt AS curr_order_amt,
+          prev.order_amt AS prev_order_amt,
+          curr.order_amt - prev.order_amt AS order_amt_chg,
+          (curr.order_amt - prev.order_amt) / NULLIF(prev.order_amt, 0) AS order_amt_pct_chg
+      FROM yearly_metrics AS curr
+      LEFT JOIN yearly_metrics AS prev
+          ON CAST(curr.year AS INTEGER) = CAST(prev.year AS INTEGER) + 1
+      ORDER BY curr_year DESC NULLS LAST
+       -- Generated by Cortex Analyst (request_id: b0b53ac1-a902-4b77-acf1-b2c820febc07)
+      ;
+    verified_by: MKUKREJA
+    verified_at: 1791696333
+    use_as_onboarding_question: false
+  - name: What were total sales year-to-date for 2022, total sales for the same period in 2021, and the year-over-year growth rate between those two periods?
+    sql: |-
+      SELECT *
+      FROM SEMANTIC_VIEW(
+          TB_PBI_DEMO.SEMANTIC.TASTY_BYTES_SV
+          METRICS order_amt_ytd, order_amt_pytd, yoy_order_amt_growth
+      )
+       -- Generated by Cortex Analyst (request_id: 5a77f42d-6478-4db5-b93f-4dcc6618d73b)
+      ;
+    question: What were total sales year-to-date for 2022, total sales for the same period in 2021, and the year-over-year growth rate between those two periods?
+    verified_at: 1791696375
+    verified_by: MKUKREJA
+    use_as_onboarding_question: false
+  - name: Which truck brands generate the most revenue?
+    question: Which truck brands generate the most revenue?
+    sql: SELECT t.truck_brand_name, SUM(f.line_total) AS revenue FROM order_details AS f JOIN truck AS t ON f.truck_id = t.truck_id GROUP BY 1 ORDER BY 2 DESC
+    verified_at: 1791696529
+  - name: Which cities and regions have the highest number of orders?
+    question: Which cities and regions have the highest number of orders?
+    sql: SELECT l.location_city, l.location_region, COUNT(DISTINCT f.order_id) AS orders FROM order_details AS f JOIN location AS l ON f.location_id = l.location_id GROUP BY 1, 2 ORDER BY 3 DESC
+    verified_at: 1791696553
+  - name: How did year-to-date revenue in 2022 compare to the same period in 2021, and what was the year-over-year growth?
+    question: How did year-to-date revenue in 2022 compare to the same period in 2021, and what was the year-over-year growth?
+    sql: SELECT SUM(IFF(d.date BETWEEN '2022-01-01' AND '2022-11-01', f.line_total, 0)) AS ytd, SUM(IFF(d.date BETWEEN '2021-01-01' AND '2021-11-01', f.line_total, 0)) AS pytd, (ytd - pytd) / NULLIF(pytd, 0) AS yoy FROM order_details AS f JOIN date AS d ON d.date_id = f.date_id
+    verified_at: 1791696569
+  - name: What are the top 10 best-selling menu items by quantity?
+    question: What are the top 10 best-selling menu items by quantity?
+    sql: SELECT m.menu_item_name, m.menu_type, SUM(f.quantity) AS units_sold FROM order_details AS f JOIN menu_item AS m ON f.menu_item_id = m.menu_item_id GROUP BY 1, 2 ORDER BY 3 DESC LIMIT 10
+    verified_at: 1791696578
+  - name: What is revenue by menu item category?
+    question: What is revenue by menu item category?
+    sql: SELECT m.menu_item_category, SUM(f.line_total) AS revenue FROM order_details AS f JOIN menu_item AS m ON f.menu_item_id = m.menu_item_id GROUP BY 1 ORDER BY 2 DESC
+    verified_at: 1791696588
+  - name: What is total revenue by month in 2022?
+    question: What is total revenue by month in 2022?
+    sql: SELECT DATE_TRUNC('MONTH', d.date) AS order_month, SUM(f.line_total) AS revenue FROM order_details AS f JOIN date AS d ON f.date_id = d.date_id WHERE d.year = '2022' GROUP BY 1 ORDER BY 1
+    verified_at: 1791696597
+  - name: How does revenue compare between weekends and weekdays?
+    question: How does revenue compare between weekends and weekdays?
+    sql: SELECT d.weekend_flag, SUM(f.line_total) AS revenue, COUNT(DISTINCT f.order_id) AS orders FROM order_details AS f JOIN date AS d ON f.date_id = d.date_id GROUP BY 1
+    verified_at: 1791696616
+  - name: What is the average order value by country?
+    question: What is the average order value by country?
+    sql: SELECT l.location_country, SUM(f.line_total) / NULLIF(COUNT(DISTINCT f.order_id), 0) AS avg_order_value FROM order_details AS f JOIN location AS l ON f.location_id = l.location_id GROUP BY 1 ORDER BY 2 DESC
+    verified_at: 1791696626
+  - name: Which hours of the day have the most orders?
+    question: Which hours of the day have the most orders?
+    sql: SELECT tm.hour, COUNT(DISTINCT f.order_id) AS orders FROM order_details AS f JOIN time AS tm ON f.time_id = tm.time_id GROUP BY 1 ORDER BY 1
+    verified_at: 1791696681
