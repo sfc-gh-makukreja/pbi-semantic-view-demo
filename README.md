@@ -428,10 +428,20 @@ USE ROLE TB_PBI_ANALYST;
 USE SECONDARY ROLES NONE;
 USE WAREHOUSE TB_PBI_WH;
 
-SELECT <a dimension>, AGG(<a metric>)
+SELECT YEAR, AGG(ORDER_AMT) AS order_amt
 FROM TB_PBI_DEMO.SEMANTIC.TASTY_BYTES_SV
-GROUP BY <a dimension>;
+GROUP BY YEAR
+ORDER BY YEAR;
 ```
+
+Result:
+
+| YEAR | ORDER_AMT |
+|------|-----------|
+| 2019 | 7413440.5000 |
+| 2020 | 25329368.0000 |
+| 2021 | 72485093.5000 |
+| 2022 | 82335742.0000 |
 
 **Check your answer:** total sales across all years must equal **187,563,644** (the sum of `DT_FACT_ORDER_DETAIL.line_total`). Yearly sales are:
 
@@ -451,6 +461,12 @@ Open the semantic view in Snowsight and ask Cortex Analyst, for example:
 - *"What were total sales by year?"*
 - *"Which truck brand sold the most units in 2022?"*
 - *"How many orders did we take per country?"*
+
+The author asked *"What were total sales by year?"* in the Playground tab of Semantic Studio. Cortex Analyst answered from the verified query *"What is total revenue by month in 2022?"* and returned the same four yearly totals as step 6 (2019: 7,413,440.50; 2020: 25,329,368.00; 2021: 72,485,093.50; 2022: 82,335,742.00). The 2022 row ends on 2022-11-01, the last date in the data.
+
+![Cortex Analyst answering total sales by year](docs/images/19-playground-sales-by-year.png)
+
+The other two example questions have not been run.
 
 The answers come from the metric definitions you brought across from Power BI, not from ad-hoc SQL.
 
@@ -514,6 +530,6 @@ Run `sql/99_teardown.sql`. It drops `TB_PBI_DEMO`, `TB_PBI_WH` and `TB_PBI_ANALY
 | 3 Point template at your account | Tested by the author: the template opens in Power BI Desktop, connects (key-pair auth) and totals match Snowflake exactly. **Not yet tested:** that File > Export keeps the parameter values for Autopilot |
 | 4 Autopilot import | Tested by the author via CoCo: import, refine, deploy and audit done; all totals verified on the deployed view. Wizard route run and documented, but its view was not queried |
 | 5 Conversion review | **Expectations from the docs, not yet observed** |
-| 6 Query | **Pending step 4**; reference totals are verified |
-| 7 Natural language | **Pending step 4** |
+| 6 Query | Tested by the author: yearly `AGG(ORDER_AMT)` query matches Snowflake |
+| 7 Natural language | One question tested in the Playground (sales by year, totals match). **Not yet run:** the other two examples |
 | 8 Power BI reconnect | Tested by the author on Windows: the `AGG()` query loads and the yearly totals match Snowflake. **Not yet run:** rebuilding the original report's visuals |
