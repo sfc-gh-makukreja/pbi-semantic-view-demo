@@ -11,6 +11,20 @@ shutil.copytree(root / "docs" / "images", out / "images")
 for f in (here / "pages" / "images").glob("*"):
     shutil.copy(f, out / "images" / f.name)
 
+KIND = {"Tip": "tip", "Note": "note", "Not yet observed": "warning", "Verified independently": "success"}
+
+def admonish(text):
+    res = []
+    for l in text.split("\n"):
+        m = re.match(r"> \*\*([^*]+?)\*\* (.*)$", l)
+        if m:
+            label = re.sub(r"\s*[—:]$", "", m[1].strip())
+            if label in KIND:
+                res += ["", f'!!! {KIND[label]} "{label}"', f"    {m[2]}", ""]
+                continue
+        res.append(l)
+    return "\n".join(res)
+
 lines = (root / "README.md").read_text(encoding="utf-8").splitlines()
 
 def shift(block):
@@ -53,7 +67,7 @@ for i, sec in enumerate(sections):
     if i == 0:
         # head holds the H1; the section heading becomes a normal H2
         pass
-    body_text = body_text.replace("docs/images/", "images/")
+    body_text = admonish(body_text.replace("docs/images/", "images/"))
     (out / name).write_text(body_text + "\n", encoding="utf-8")
 
 (out / "nav.txt").write_text("\n".join(f"{t}|{n}" for t, n in nav), encoding="utf-8")

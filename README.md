@@ -34,7 +34,7 @@ Here is the path you will follow:
 
 ### Prerequisites
 
-- A Snowflake account where you can use `ACCOUNTADMIN`. A trial account is fine: <https://tinyurl.com/spn-hol>.
+- A Snowflake account where you can use `ACCOUNTADMIN`. A trial account is fine.
 - Power BI Desktop (free) for steps 3 and 8. **Power BI Desktop runs on Windows only**, so use a Windows machine or VM for those two steps. Everything else works on any laptop.
 
 > **Tip —** The Tasty Bytes model and Power BI template come from the Snowflake quickstart [End-to-End Analytics with Snowflake and Power BI](https://github.com/Snowflake-Labs/sfguide-end-to-end-analytics-with-snowflake-and-power-bi).
