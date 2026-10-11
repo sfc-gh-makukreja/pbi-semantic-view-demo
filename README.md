@@ -410,15 +410,37 @@ The answers come from the metric definitions you brought across from Power BI, n
 
 ## Step 8 - Reconnect Power BI to Snowflake (Windows)
 
-In Power BI Desktop, choose **Get data > Snowflake**. Enter the same server and warehouse, and set the role to `TB_PBI_ANALYST`. Under **Advanced options**, run a SQL statement against the semantic view, for example:
+Power BI can read the semantic view with a plain SQL statement, so the report uses the metrics you defined in Snowflake instead of its own DAX.
+
+1. In Power BI Desktop, choose **Get data**, select **Snowflake** and choose **Connect**.
+
+![The Get Data dialog with Snowflake selected](docs/images/09-powerbi-get-data-snowflake.png)
+
+2. Enter your Snowflake server and set the warehouse to `TB_PBI_WH`. Expand **Advanced options** and set:
+   - **Role name:** `TB_PBI_ANALYST`
+   - **Database:** `TB_PBI_DEMO` (the SQL statement box requires it)
+   - **SQL statement:**
 
 ```sql
-SELECT <dimension>, AGG(<metric>) AS value
+SELECT YEAR, AGG(ORDER_AMT) AS order_amt, AGG(ORDER_COUNT) AS order_count
 FROM TB_PBI_DEMO.SEMANTIC.TASTY_BYTES_SV
-GROUP BY <dimension>
+GROUP BY YEAR
+ORDER BY YEAR
 ```
 
+![The Snowflake connector with the role, database and AGG query filled in](docs/images/10-powerbi-snowflake-advanced-options.png)
+
+3. Choose **OK** and sign in. The preview returns one row per year:
+
+![The preview showing order amount and order count by year](docs/images/11-powerbi-semantic-view-preview.png)
+
+The numbers match the totals you verified in step 6: 2019 is 7,413,440.50, 2020 is 25,329,368.00, 2021 is 72,485,093.50 and 2022 is 82,335,742.00. The order counts add up to 4,656,869.
+
 The point to land: the report now reads governed metrics that are defined once, in Snowflake.
+
+### Extended Test (Not Yet Run)
+
+Rebuild the visuals of the original Order Summary report on top of the semantic view, so every measure comes from `AGG()` instead of DAX.
 
 ## Step 9 - Clean Up
 
@@ -448,4 +470,4 @@ Run `sql/99_teardown.sql`. It drops `TB_PBI_DEMO`, `TB_PBI_WH` and `TB_PBI_ANALY
 | 5 Conversion review | **Expectations from the docs, not yet observed** |
 | 6 Query | **Pending step 4**; reference totals are verified |
 | 7 Natural language | **Pending step 4** |
-| 8 Power BI reconnect | **Not yet run**; method needs validating |
+| 8 Power BI reconnect | Tested by the author on Windows: the `AGG()` query loads and the yearly totals match Snowflake. **Not yet run:** rebuilding the original report's visuals |
