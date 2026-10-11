@@ -169,76 +169,76 @@ This is captured from the author's run. Your wording and the order of questions 
 
 **4.2.1.2 It summarises the Power BI model.**
 
-   | Item | Count |
-   |---|---|
-   | Tables | 10 |
-   | Columns (none calculated) | 108 |
-   | DAX measures | 7 |
-   | Relationships | 18 |
-   | Warnings / unresolved tables | none |
+| Item | Count |
+|---|---|
+| Tables | 10 |
+| Columns (none calculated) | 108 |
+| DAX measures | 7 |
+| Relationships | 18 |
+| Warnings / unresolved tables | none |
 
-   It also calls the model "large", only because it has more than 100 objects.
+It also calls the model "large", only because it has more than 100 objects.
 
 **4.2.1.3 It maps each Power BI table to a Snowflake table** (columns / measures):
 
-   | Power BI table | Snowflake table in `TB_PBI_DEMO.POWERBI` | Cols / measures |
-   |---|---|---|
-   | Customer | `DT_DIM_CUSTOMER` | 17 / 0 |
-   | Date | `DIM_DATE` | 11 / 0 |
-   | Franchise | `DT_DIM_FRANCHISE` | 8 / 0 |
-   | Location | `DT_DIM_LOCATION` | 6 / 0 |
-   | Menu Item | `DT_DIM_MENU_ITEM` | 13 / 0 |
-   | Time | `DIM_TIME` | 7 / 0 |
-   | Truck | `DT_DIM_TRUCK` | 15 / 0 |
-   | Order Details | `DT_FACT_ORDER_DETAIL` | 12 / 7 |
-   | Order Agg | `DT_FACT_ORDER_AGG` | 9 / 0 |
-   | Order Header | `DT_FACT_ORDER_HEADER` | 10 / 0 |
+| Power BI table | Snowflake table in `TB_PBI_DEMO.POWERBI` | Cols / measures |
+|---|---|---|
+| Customer | `DT_DIM_CUSTOMER` | 17 / 0 |
+| Date | `DIM_DATE` | 11 / 0 |
+| Franchise | `DT_DIM_FRANCHISE` | 8 / 0 |
+| Location | `DT_DIM_LOCATION` | 6 / 0 |
+| Menu Item | `DT_DIM_MENU_ITEM` | 13 / 0 |
+| Time | `DIM_TIME` | 7 / 0 |
+| Truck | `DT_DIM_TRUCK` | 15 / 0 |
+| Order Details | `DT_FACT_ORDER_DETAIL` | 12 / 7 |
+| Order Agg | `DT_FACT_ORDER_AGG` | 9 / 0 |
+| Order Header | `DT_FACT_ORDER_HEADER` | 10 / 0 |
 
-   The mapping works because the Snowflake table names match the Power BI table sources exactly, including the `customer_favorite_band` spelling.
+The mapping works because the Snowflake table names match the Power BI table sources exactly, including the `customer_favorite_band` spelling.
 
 **4.2.1.4 It sorts the 7 measures.**
 
-   | Measure | DAX | Result |
-   |---|---|---|
-   | Order Count | `DISTINCTCOUNT(ORDER_ID)` | converts |
-   | Order Line Count | `COUNTROWS` | converts |
-   | Order Amt | `SUM(LINE_TOTAL)` | converts |
-   | Order Qty | `SUM(QUANTITY)` | converts |
-   | Order Amt YTD | `TOTALYTD` | may not convert |
-   | Order Amt PYTD | `SAMEPERIODLASTYEAR` | may not convert |
-   | YoY Order Amt Growth | uses `SAMEPERIODLASTYEAR` | may not convert |
+| Measure | DAX | Result |
+|---|---|---|
+| Order Count | `DISTINCTCOUNT(ORDER_ID)` | converts |
+| Order Line Count | `COUNTROWS` | converts |
+| Order Amt | `SUM(LINE_TOTAL)` | converts |
+| Order Qty | `SUM(QUANTITY)` | converts |
+| Order Amt YTD | `TOTALYTD` | may not convert |
+| Order Amt PYTD | `SAMEPERIODLASTYEAR` | may not convert |
+| YoY Order Amt Growth | uses `SAMEPERIODLASTYEAR` | may not convert |
 
 #### 4.2.2 Phase 2: You choose what to import
 
 **4.2.2.1 It flags the three fact tables and asks how much to import.** The options are:
 
-   1. Everything as-is.
-   2. Everything except Order Agg (CoCo's recommendation).
-   3. Only Order Details plus the dimensions.
+1. Everything as-is.
+2. Everything except Order Agg (CoCo's recommendation).
+3. Only Order Details plus the dimensions.
 
-   It also asks whether to write AI descriptions for the metrics.
+It also asks whether to write AI descriptions for the metrics.
 
-   **Choose option 3 and say yes to the descriptions.** `Order Agg` and `Order Header` are hidden Power BI **aggregation tables**: every column carries an `alternateOf` pointer back to `Order Details`, so Power BI can answer summary queries from a smaller table. A semantic view has no use for that trick, and importing them would add duplicate paths to the same numbers.
+**Choose option 3 and say yes to the descriptions.** `Order Agg` and `Order Header` are hidden Power BI **aggregation tables**: every column carries an `alternateOf` pointer back to `Order Details`, so Power BI can answer summary queries from a smaller table. A semantic view has no use for that trick, and importing them would add duplicate paths to the same numbers.
 
 **4.2.2.2 You get a valid semantic view definition.**
 
-   | Item | Value |
-   |---|---|
-   | Semantic view | `TASTY_BYTES_SV` in `TB_PBI_DEMO.SEMANTIC` |
-   | Status | YAML valid, **not deployed** |
-   | Saved to | `Untitled.sv.yaml` |
-   | Tables | 8 (Order Details + 7 dimensions) |
-   | Columns | 89 |
-   | Relationships | 7 (Order Details to each dimension) |
-   | Metrics | 4: `ORDER_COUNT`, `ORDER_LINE_COUNT`, `ORDER_AMT`, `ORDER_QTY` |
-   | AI descriptions | on the metrics only |
-   | Dropped | 3 time-intelligence measures (YTD, PYTD, YoY) |
+| Item | Value |
+|---|---|
+| Semantic view | `TASTY_BYTES_SV` in `TB_PBI_DEMO.SEMANTIC` |
+| Status | YAML valid, **not deployed** |
+| Saved to | `Untitled.sv.yaml` |
+| Tables | 8 (Order Details + 7 dimensions) |
+| Columns | 89 |
+| Relationships | 7 (Order Details to each dimension) |
+| Metrics | 4: `ORDER_COUNT`, `ORDER_LINE_COUNT`, `ORDER_AMT`, `ORDER_QTY` |
+| AI descriptions | on the metrics only |
+| Dropped | 3 time-intelligence measures (YTD, PYTD, YoY) |
 
 **4.2.2.3 It flags column types worth fixing, and offers next steps:** descriptions for tables and columns, recreating YTD/PYTD/YoY as SQL metrics (this needs your approval), fixing the column types, an audit, and deploying to `TB_PBI_DEMO.SEMANTIC.TASTY_BYTES_SV`.
 
-   - **IDs come through as `FLOAT`.** Power BI types every number as `double`, but Snowflake stores the IDs as `NUMBER(38,0)`. Fix the ID columns and `Truck.FRANCHISE_ID` (Power BI summarises it by count).
-   - **`Date.YEAR` is `TEXT`.** It is stored as text in Snowflake, so leave it.
-   - **`COGS_USD` and `SALE_PRICE_USD` are labels.** Power BI set them to not summarise, and they are per-unit prices that should not be added up, so leave them.
+- **IDs come through as `FLOAT`.** Power BI types every number as `double`, but Snowflake stores the IDs as `NUMBER(38,0)`. Fix the ID columns and `Truck.FRANCHISE_ID` (Power BI summarises it by count).
+- **`Date.YEAR` is `TEXT`.** It is stored as text in Snowflake, so leave it.
+- **`COGS_USD` and `SALE_PRICE_USD` are labels.** Power BI set them to not summarise, and they are per-unit prices that should not be added up, so leave them.
 
 > **Tip —** Do not worry if your wording differs. If the counts match (10 tables, 108 columns, 7 measures, 18 relationships, then 8 tables, 89 columns, 7 relationships, 4 metrics), you are on track.
 
@@ -248,109 +248,109 @@ Ask CoCo to do these three things, in this order.
 
 **4.2.3.1 Fix the column types.** Ask CoCo to limit the fix to the IDs and `FRANCHISE_ID`. CoCo has no edit that changes a data type directly, so it removes each column and re-adds a corrected one, then validates the YAML in Snowflake.
 
-   | Change | Columns |
-   |---|---|
-   | `FLOAT` to `NUMBER` | all 18 `*_ID` columns across the 8 tables, matching how Snowflake stores them |
-   | Fact to dimension | `Truck.FRANCHISE_ID`, `Order Details.ORDER_ID`, `Order Details.ORDER_DETAIL_ID`, so they cannot be summed or averaged |
-   | Left alone | `Date.YEAR` (stays `TEXT`) and the menu item prices (stay dimensions) |
+| Change | Columns |
+|---|---|
+| `FLOAT` to `NUMBER` | all 18 `*_ID` columns across the 8 tables, matching how Snowflake stores them |
+| Fact to dimension | `Truck.FRANCHISE_ID`, `Order Details.ORDER_ID`, `Order Details.ORDER_DETAIL_ID`, so they cannot be summed or averaged |
+| Left alone | `Date.YEAR` (stays `TEXT`) and the menu item prices (stay dimensions) |
 
-   `ORDER_COUNT` still works afterwards, because it counts distinct IDs. The YAML stays valid.
+`ORDER_COUNT` still works afterwards, because it counts distinct IDs. The YAML stays valid.
 
 **4.2.3.2 Recreate YTD, PYTD and YoY.** `TOTALYTD` adjusts to whatever date the Power BI report is filtered to. A semantic view metric cannot read a report filter, so CoCo has to fix a reference date and asks you to choose:
 
-   | Anchor | Behaviour |
-   |---|---|
-   | Today (calendar year) | YTD runs from Jan 1 of this year to today. **Returns $0 or NULL here**, because the demo data ends in 2022. |
-   | Latest order date in the data | The same metrics, anchored to the most recent order date. **Choose this one.** |
+| Anchor | Behaviour |
+|---|---|
+| Today (calendar year) | YTD runs from Jan 1 of this year to today. **Returns $0 or NULL here**, because the demo data ends in 2022. |
+| Latest order date in the data | The same metrics, anchored to the most recent order date. **Choose this one.** |
 
-   CoCo checks the data range first: orders run from 2019-01-01 to **2022-11-01**. It then adds three metrics to `Order Details`:
+CoCo checks the data range first: orders run from 2019-01-01 to **2022-11-01**. It then adds three metrics to `Order Details`:
 
-   | Metric | Definition |
-   |---|---|
-   | `ORDER_AMT_YTD` | Revenue from Jan 1 to Nov 1, 2022 |
-   | `ORDER_AMT_PYTD` | Revenue for the same window in 2021 |
-   | `YOY_ORDER_AMT_GROWTH` | (YTD - PYTD) / PYTD, NULL when PYTD is 0 |
+| Metric | Definition |
+|---|---|
+| `ORDER_AMT_YTD` | Revenue from Jan 1 to Nov 1, 2022 |
+| `ORDER_AMT_PYTD` | Revenue for the same window in 2021 |
+| `YOY_ORDER_AMT_GROWTH` | (YTD - PYTD) / PYTD, NULL when PYTD is 0 |
 
-   To get these to validate, CoCo also makes two supporting changes:
+To get these to validate, CoCo also makes two supporting changes:
 
-   - **Primary keys.** It confirms every ID is unique on the 7 dimensions and sets each as the primary key. The metrics need one on `Date`, and it makes every join many-to-one.
-   - **`ORDER_DATE` fact.** It adds an `ORDER_DATE` fact to `Order Details`, taken from the `Date` table.
+- **Primary keys.** It confirms every ID is unique on the 7 dimensions and sets each as the primary key. The metrics need one on `Date`, and it makes every join many-to-one.
+- **`ORDER_DATE` fact.** It adds an `ORDER_DATE` fact to `Order Details`, taken from the `Date` table.
 
-   CoCo then checks the logic with a direct SQL query on the source tables, which gives **YTD $82.3M, PYTD $57.4M and YoY growth of +43.5%**. The metrics use the same date windows, so they should return these numbers once the view is deployed. You will run them yourself in step 6.
+CoCo then checks the logic with a direct SQL query on the source tables, which gives **YTD $82.3M, PYTD $57.4M and YoY growth of +43.5%**. The metrics use the same date windows, so they should return these numbers once the view is deployed. You will run them yourself in step 6.
 
-   > **Tip —** These metrics will not follow a date slicer in Power BI. That is a real difference from the original DAX, so point it out when you demo.
+> **Tip —** These metrics will not follow a date slicer in Power BI. That is a real difference from the original DAX, so point it out when you demo.
 
-   > **Tip —** The anchor date is **hard-coded** as `2022-11-01`. A semantic view metric cannot contain a subquery, and the analyst role cannot create a helper view, so the date cannot be looked up at query time. If new orders arrive, update the date by hand. The metric descriptions say so.
+> **Tip —** The anchor date is **hard-coded** as `2022-11-01`. A semantic view metric cannot contain a subquery, and the analyst role cannot create a helper view, so the date cannot be looked up at query time. If new orders arrive, update the date by hand. The metric descriptions say so.
 
-   > **Not yet observed:** the YTD, PYTD and YoY metrics have not been run through the deployed view. The numbers above come from CoCo's SQL check on the source tables.
+> **Not yet observed:** the YTD, PYTD and YoY metrics have not been run through the deployed view. The numbers above come from CoCo's SQL check on the source tables.
 
 **4.2.3.3 Add table and column descriptions.** CoCo drafts a description for the model, all 8 tables and all 92 columns, based on real values in the data (regions, menu categories, the Y/N and 0/1 flags). Each table description states its grain, and the model description gives the data range, 2019-01-01 to 2022-11-01. The YAML stays valid, and it is still **not deployed**.
 
-    ![The visual editor showing the model description and the logical tables](docs/images/05-semantic-view-overview.png)
+![The visual editor showing the model description and the logical tables](docs/images/05-semantic-view-overview.png)
 
-    You can review all of this in the Semantic Studio visual editor: the model description, the 8 logical tables with their dimensions, time dimensions, facts and metrics, and the 7 relationships.
+You can review all of this in the Semantic Studio visual editor: the model description, the 8 logical tables with their dimensions, time dimensions, facts and metrics, and the 7 relationships.
 
-    > **Tip —** A few leftovers from the Power BI import are harmless. For example, `Franchise` keeps a `ROW_NUM` fact typed `FLOAT`, which CoCo describes as a technical row number that is not meaningful for analysis. Remove it if you want a cleaner view.
+> **Tip —** A few leftovers from the Power BI import are harmless. For example, `Franchise` keeps a `ROW_NUM` fact typed `FLOAT`, which CoCo describes as a technical row number that is not meaningful for analysis. Remove it if you want a cleaner view.
 
 **4.2.3.4 Deploy and audit.** Tell CoCo to audit and deploy. The quality score is computed from the deployed view, so CoCo deploys first, then audits. The view is created as `TB_PBI_DEMO.SEMANTIC.TASTY_BYTES_SV`, owned by `TB_PBI_ANALYST`.
 
-    CoCo then runs the new metrics against the live view. They match the earlier SQL check exactly:
+CoCo then runs the new metrics against the live view. They match the earlier SQL check exactly:
 
-    | Metric | Result |
-    |---|---|
-    | `ORDER_AMT_YTD` | $82,335,742 |
-    | `ORDER_AMT_PYTD` | $57,371,644 |
-    | `YOY_ORDER_AMT_GROWTH` | 0.435 (+43.5%) |
-    | `ORDER_COUNT` | 4,656,869 |
+| Metric | Result |
+|---|---|
+| `ORDER_AMT_YTD` | $82,335,742 |
+| `ORDER_AMT_PYTD` | $57,371,644 |
+| `YOY_ORDER_AMT_GROWTH` | 0.435 (+43.5%) |
+| `ORDER_COUNT` | 4,656,869 |
 
-    The audit reports the following.
+The audit reports the following.
 
-    | Level | Finding |
-    |---|---|
-    | Score | 57% on the first audit. The main gap was having no verified queries (fixed in the next item). |
-    | Warning | The YTD/PYTD anchor date is hard-coded as `2022-11-01`, so the metrics stay stuck there if new orders land. |
-    | Warning | `Date.YEAR` is `TEXT`, so a question like "orders in years after 2020" compares text, not numbers. |
-    | Warning | `COGS_USD` and `SALE_PRICE_USD` are dimensions, so they cannot be averaged. "Average menu price" may fail or give odd results. |
-    | Warning | The model exposes personal data (customer email, phone, date of birth and postal code, plus franchise email and phone) with no masking. |
-    | Info | `Franchise.ROW_NUM` is a technical column set as a fact, so it could be summed by mistake. Remove it. |
-    | Info | `FRANCHISE_ID` appears on both `Order Details` and `Truck`. That is fine, because only `Order Details` links to `Franchise`. |
-    | Info | No duplicate or inconsistent definitions. |
+| Level | Finding |
+|---|---|
+| Score | 57% on the first audit. The main gap was having no verified queries (fixed in the next item). |
+| Warning | The YTD/PYTD anchor date is hard-coded as `2022-11-01`, so the metrics stay stuck there if new orders land. |
+| Warning | `Date.YEAR` is `TEXT`, so a question like "orders in years after 2020" compares text, not numbers. |
+| Warning | `COGS_USD` and `SALE_PRICE_USD` are dimensions, so they cannot be averaged. "Average menu price" may fail or give odd results. |
+| Warning | The model exposes personal data (customer email, phone, date of birth and postal code, plus franchise email and phone) with no masking. |
+| Info | `Franchise.ROW_NUM` is a technical column set as a fact, so it could be summed by mistake. Remove it. |
+| Info | `FRANCHISE_ID` appears on both `Order Details` and `Truck`. That is fine, because only `Order Details` links to `Franchise`. |
+| Info | No duplicate or inconsistent definitions. |
 
-    CoCo's suggested next steps are: add verified queries (the biggest score gain, done in the next item), fix the `YEAR` and price warnings and remove `ROW_NUM`, and hide or remove the personal-data columns.
+CoCo's suggested next steps are: add verified queries (the biggest score gain, done in the next item), fix the `YEAR` and price warnings and remove `ROW_NUM`, and hide or remove the personal-data columns.
 
-    > **Tip —** The personal-data warning matters for a partner demo. The lab data is synthetic, but real customer columns should be masked or hidden before a semantic view goes to a wider audience.
+> **Tip —** The personal-data warning matters for a partner demo. The lab data is synthetic, but real customer columns should be masked or hidden before a semantic view goes to a wider audience.
 
-    > **Verified independently:** after the deploy, the author's queries on the live view returned $187,563,644 total sales and the same yearly figures as in step 6 (2019: $7,413,440.50, 2020: $25,329,368.00, 2021: $72,485,093.50, 2022: $82,335,742.00). The `SEMANTIC_VIEW()` syntax returned Denver $165,842,404.25 / 4,073,706 orders and San Mateo $21,721,239.75 / 583,163 orders.
+> **Verified independently:** after the deploy, the author's queries on the live view returned $187,563,644 total sales and the same yearly figures as in step 6 (2019: $7,413,440.50, 2020: $25,329,368.00, 2021: $72,485,093.50, 2022: $82,335,742.00). The `SEMANTIC_VIEW()` syntax returned Denver $165,842,404.25 / 4,073,706 orders and San Mateo $21,721,239.75 / 583,163 orders.
 
-    ![ORDER_DETAILS with its seven metrics](docs/images/06-semantic-view-logical-tables-metrics.png)
+![ORDER_DETAILS with its seven metrics](docs/images/06-semantic-view-logical-tables-metrics.png)
 
-    The three SQL metrics (`ORDER_AMT_YTD`, `ORDER_AMT_PYTD`, `YOY_ORDER_AMT_GROWTH`) sit under `ORDER_DETAILS`, followed by the seven many-to-one relationships. The "Verified queries 0" heading in this shot is the starting point for the next item.
+The three SQL metrics (`ORDER_AMT_YTD`, `ORDER_AMT_PYTD`, `YOY_ORDER_AMT_GROWTH`) sit under `ORDER_DETAILS`, followed by the seven many-to-one relationships. The "Verified queries 0" heading in this shot is the starting point for the next item.
 
-    ![The three time-intelligence metrics and the first relationships](docs/images/07-semantic-view-metrics-relationships.png)
+![The three time-intelligence metrics and the first relationships](docs/images/07-semantic-view-metrics-relationships.png)
 
 **4.2.3.5 Generate verified queries.** Verified queries are question and SQL pairs that Cortex Analyst treats as known-good answers. They are the biggest single lever on the quality score.
 
-    ```
-    Generate verified queries to improve the quality score
-    ```
+```
+Generate verified queries to improve the quality score
+```
 
-    CoCo pulls suggestions from your query history, validates every candidate against the model, adds them and redeploys. In the author's run it ended with **11 verified queries and the score up from 57% to 83% ("Good")**:
+CoCo pulls suggestions from your query history, validates every candidate against the model, adds them and redeploys. In the author's run it ended with **11 verified queries and the score up from 57% to 83% ("Good")**:
 
-    | # | Question | Source |
-    |---|----------|--------|
-    | 1 | Total orders, units and revenue year over year | Earlier Cortex Analyst query |
-    | 2 | 2022 YTD vs same period 2021 and YoY growth (metrics) | Earlier Cortex Analyst query |
-    | 3 | Cities and regions with the most orders | Query history |
-    | 4 | 2022 YTD vs 2021, fixed dates (rewritten) | Query history |
-    | 5-11 | Revenue by truck brand, top 10 items by quantity, revenue by menu category, revenue by month in 2022, orders by hour, weekend vs weekday, average order value by country | New |
+| # | Question | Source |
+|---|----------|--------|
+| 1 | Total orders, units and revenue year over year | Earlier Cortex Analyst query |
+| 2 | 2022 YTD vs same period 2021 and YoY growth (metrics) | Earlier Cortex Analyst query |
+| 3 | Cities and regions with the most orders | Query history |
+| 4 | 2022 YTD vs 2021, fixed dates (rewritten) | Query history |
+| 5-11 | Revenue by truck brand, top 10 items by quantity, revenue by menu category, revenue by month in 2022, orders by hour, weekend vs weekday, average order value by country | New |
 
-    > **Tip —** Query history yields few suggestions on a fresh account (3 here), so CoCo writes the rest. One history query used dates relative to today, so CoCo rewrote it with fixed dates, otherwise it would drift as the data ages. Queries #2 and #4 overlap; remove one if you want a tidier list.
+> **Tip —** Query history yields few suggestions on a fresh account (3 here), so CoCo writes the rest. One history query used dates relative to today, so CoCo rewrote it with fixed dates, otherwise it would drift as the data ages. Queries #2 and #4 overlap; remove one if you want a tidier list.
 
-    > **Tip —** If the redeploy fails, check the metric descriptions: double quotes inside a description break the YAML. CoCo swapped them for single quotes.
+> **Tip —** If the redeploy fails, check the metric descriptions: double quotes inside a description break the YAML. CoCo swapped them for single quotes.
 
-    ![The visual editor listing 11 verified queries, one expanded to show its SQL](docs/images/08-semantic-view-verified-queries.png)
+![The visual editor listing 11 verified queries, one expanded to show its SQL](docs/images/08-semantic-view-verified-queries.png)
 
-    Still open after this step: the hard-coded `2022-11-01` anchor, personal-data columns, `DATE.YEAR` stored as text, prices modelled as dimensions, and `ROW_NUM`.
+Still open after this step: the hard-coded `2022-11-01` anchor, personal-data columns, `DATE.YEAR` stored as text, prices modelled as dimensions, and `ROW_NUM`.
 
 ### 4.3 Alternative: the Upload Wizard
 
