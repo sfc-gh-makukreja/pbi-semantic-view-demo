@@ -5,6 +5,8 @@ docs_dir: .build
 site_dir: site
 theme:
   name: material
+  logo: images/snowflake-symbol-white.png
+  favicon: images/snowflake-symbol.png
   palette:
     primary: light blue
   features:
