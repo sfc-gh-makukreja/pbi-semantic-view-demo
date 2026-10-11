@@ -256,7 +256,9 @@ It also asks whether to write AI descriptions for the metrics.
 
 Ask CoCo to do these three things, in this order.
 
-**4.2.3.1 Fix the column types.** Ask CoCo to limit the fix to the IDs and `FRANCHISE_ID`. CoCo has no edit that changes a data type directly, so it removes each column and re-adds a corrected one, then validates the YAML in Snowflake.
+##### 4.2.3.1 Fix the column types
+
+Ask CoCo to limit the fix to the IDs and `FRANCHISE_ID`. CoCo has no edit that changes a data type directly, so it removes each column and re-adds a corrected one, then validates the YAML in Snowflake.
 
 | Change | Columns |
 |---|---|
@@ -266,7 +268,9 @@ Ask CoCo to do these three things, in this order.
 
 `ORDER_COUNT` still works afterwards, because it counts distinct IDs. The YAML stays valid.
 
-**4.2.3.2 Recreate YTD, PYTD and YoY.** `TOTALYTD` adjusts to whatever date the Power BI report is filtered to. A semantic view metric cannot read a report filter, so CoCo has to fix a reference date and asks you to choose:
+##### 4.2.3.2 Recreate YTD, PYTD and YoY
+
+`TOTALYTD` adjusts to whatever date the Power BI report is filtered to. A semantic view metric cannot read a report filter, so CoCo has to fix a reference date and asks you to choose:
 
 | Anchor | Behaviour |
 |---|---|
@@ -294,7 +298,9 @@ CoCo then checks the logic with a direct SQL query on the source tables, which g
 
 > **Not yet observed:** the YTD, PYTD and YoY metrics have not been run through the deployed view. The numbers above come from CoCo's SQL check on the source tables.
 
-**4.2.3.3 Add table and column descriptions.** CoCo drafts a description for the model, all 8 tables and all 92 columns, based on real values in the data (regions, menu categories, the Y/N and 0/1 flags). Each table description states its grain, and the model description gives the data range, 2019-01-01 to 2022-11-01. The YAML stays valid, and it is still **not deployed**.
+##### 4.2.3.3 Add table and column descriptions
+
+CoCo drafts a description for the model, all 8 tables and all 92 columns, based on real values in the data (regions, menu categories, the Y/N and 0/1 flags). Each table description states its grain, and the model description gives the data range, 2019-01-01 to 2022-11-01. The YAML stays valid, and it is still **not deployed**.
 
 ![The visual editor showing the model description and the logical tables](docs/images/05-semantic-view-overview.png)
 
@@ -302,7 +308,9 @@ You can review all of this in the Semantic Studio visual editor: the model descr
 
 > **Tip —** A few leftovers from the Power BI import are harmless. For example, `Franchise` keeps a `ROW_NUM` fact typed `FLOAT`, which CoCo describes as a technical row number that is not meaningful for analysis. Remove it if you want a cleaner view.
 
-**4.2.3.4 Deploy and audit.** Tell CoCo to audit and deploy. The quality score is computed from the deployed view, so CoCo deploys first, then audits. The view is created as `TB_PBI_DEMO.SEMANTIC.TASTY_BYTES_SV`, owned by `TB_PBI_ANALYST`.
+##### 4.2.3.4 Deploy and audit
+
+Tell CoCo to audit and deploy. The quality score is computed from the deployed view, so CoCo deploys first, then audits. The view is created as `TB_PBI_DEMO.SEMANTIC.TASTY_BYTES_SV`, owned by `TB_PBI_ANALYST`.
 
 CoCo then runs the new metrics against the live view. They match the earlier SQL check exactly:
 
@@ -338,7 +346,9 @@ The three SQL metrics (`ORDER_AMT_YTD`, `ORDER_AMT_PYTD`, `YOY_ORDER_AMT_GROWTH`
 
 ![The three time-intelligence metrics and the first relationships](docs/images/07-semantic-view-metrics-relationships.png)
 
-**4.2.3.5 Generate verified queries.** Verified queries are question and SQL pairs that Cortex Analyst treats as known-good answers. They are the biggest single lever on the quality score.
+##### 4.2.3.5 Generate verified queries
+
+Verified queries are question and SQL pairs that Cortex Analyst treats as known-good answers. They are the biggest single lever on the quality score.
 
 ```
 Generate verified queries to improve the quality score
@@ -366,31 +376,45 @@ Still open after this step: the hard-coded `2022-11-01` anchor, personal-data co
 
 If you prefer clicking to chatting, the guided wizard builds a semantic view from the same file with no conversation. It is quick, but it gives you less control.
 
-**4.3.1** In Snowsight, go to **Workspaces > + Add new > Semantic view** and choose **Guided wizard** (the other options are **Create with CoCo** and **Start blank**).
+#### 4.3.1 Choose the Guided Wizard
+
+In Snowsight, go to **Workspaces > + Add new > Semantic view** and choose **Guided wizard** (the other options are **Create with CoCo** and **Start blank**).
 
    ![Guided wizard option](docs/images/12-wizard-guided-wizard.png)
 
-**4.3.2** On **Provide context**, choose **Power BI** and select **Next**.
+#### 4.3.2 Choose Power BI
+
+On **Provide context**, choose **Power BI** and select **Next**.
 
    ![Provide context](docs/images/13-wizard-provide-context.png)
 
-**4.3.3** On **Upload Power BI file**, select **Browse** and pick `TastyBytes_bound.pbit`. The wizard accepts `.pbix` and `.pbit`.
+#### 4.3.3 Upload the Template
+
+On **Upload Power BI file**, select **Browse** and pick `TastyBytes_bound.pbit`. The wizard accepts `.pbix` and `.pbit`.
 
    ![Upload the template](docs/images/14-wizard-upload-pbit.png)
 
-**4.3.4** Leave **Add sample values** and **Add descriptions** ticked (both are on by default), then select **Next**.
+#### 4.3.4 Keep the Defaults
+
+Leave **Add sample values** and **Add descriptions** ticked (both are on by default), then select **Next**.
 
    ![Wizard options](docs/images/15-wizard-options.png)
 
-**4.3.5** Name the view `WIZARD_TASTYBYTES_SV`, keep the target name `default`, store it in `TB_PBI_DEMO.SEMANTIC`, and select **Publish**. A different name keeps it apart from the `TASTY_BYTES_SV` you built with CoCo.
+#### 4.3.5 Name and Store the View
+
+Name the view `WIZARD_TASTYBYTES_SV`, keep the target name `default`, store it in `TB_PBI_DEMO.SEMANTIC`, and select **Publish**. A different name keeps it apart from the `TASTY_BYTES_SV` you built with CoCo.
 
    ![Name the semantic view](docs/images/16-wizard-name.png)
 
-**4.3.6** Wait while the wizard generates the view (it can take up to 10 minutes). **Show details** lists each stage and any warnings.
+#### 4.3.6 Wait for Generation
+
+Wait while the wizard generates the view (it can take up to 10 minutes). **Show details** lists each stage and any warnings.
 
    ![Generation details](docs/images/17-wizard-generating.png)
 
-**4.3.7** When it finishes, the wizard reports **Your semantic view is ready**, with no errors and a suggestions panel on the right.
+#### 4.3.7 Check the Result
+
+When it finishes, the wizard reports **Your semantic view is ready**, with no errors and a suggestions panel on the right.
 
    ![Semantic view is ready](docs/images/18-wizard-ready.png)
 
